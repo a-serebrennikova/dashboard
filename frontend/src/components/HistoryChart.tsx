@@ -15,21 +15,8 @@ interface HistoryChartProps {
 }
 
 const HistoryChart = ({ data }: HistoryChartProps) => (
-  <div
-    style={{
-      background: "#1e293b",
-      padding: "20px",
-      borderRadius: "12px",
-      border: "1px solid #334155",
-    }}
-  >
-    <h3
-      style={{
-        color: "#94a3b8",
-        fontSize: "16px",
-        marginBottom: "16px",
-      }}
-    >
+  <div className="bg-slate-900 p-5 rounded-lg border border-slate-700 w-full">
+    <h3 className="text-slate-400 text-base mb-4">
       📊 Metrics history (last 15 points)
     </h3>
     <ResponsiveContainer width="100%" height={300}>
@@ -37,14 +24,7 @@ const HistoryChart = ({ data }: HistoryChartProps) => (
         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
         <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} />
         <YAxis domain={[0, 100]} stroke="#94a3b8" fontSize={12} />
-        <Tooltip
-          contentStyle={{
-            background: "#1e293b",
-            border: "1px solid #334155",
-            borderRadius: "8px",
-            color: "#f1f5f9",
-          }}
-        />
+        <Tooltip content={<CustomTooltip />} />
         <Legend />
         <Line
           type="monotone"
@@ -68,3 +48,20 @@ const HistoryChart = ({ data }: HistoryChartProps) => (
 );
 
 export default HistoryChart;
+
+function CustomTooltip(props: any) {
+  const { active, payload, label } = props;
+  if (!active || !payload || !payload.length) return null;
+  const point = payload[0].payload;
+  return (
+    <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white">
+      <div className="text-slate-400 mb-1">{label}</div>
+      <div>
+        Indicator 1: <span className="text-blue-400">{point.indicator1}</span>
+      </div>
+      <div>
+        Indicator 2: <span className="text-green-400">{point.indicator2}</span>
+      </div>
+    </div>
+  );
+}

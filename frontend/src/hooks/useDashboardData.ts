@@ -14,7 +14,6 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
 
     ws.onopen = () => {
       setIsConnected(true);
-      console.log("✅ Connected!");
     };
 
     ws.onmessage = (event: MessageEvent) => {
@@ -25,11 +24,11 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
           setData({
             indicator1: message.data.indicator1,
             indicator2: message.data.indicator2,
+            timestamp: message.data.timestamp,
             history: [...message.data.history],
           });
-          console.log("✅ Data updated:", message.data);
         } else {
-          console.log("⚠️ Unknown message type:", (message as any).type);
+          console.error("⚠️ Unknown message type:", (message as any).type);
         }
       } catch (error) {
         console.error("❌ Parsing error:", error);
@@ -38,7 +37,6 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
 
     ws.onclose = () => {
       setIsConnected(false);
-      console.log("❌ Disconnected");
     };
 
     ws.onerror = (error: Event) => {
