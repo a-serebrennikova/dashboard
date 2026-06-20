@@ -4,18 +4,13 @@ import { generateNewData, getInitialState } from "./dataGenerated.js";
 const PORT = process.env.PORT || 8080;
 
 try {
-  const wss = new WebSocketServer({ port: 8080 });
+  const wss = new WebSocketServer({ port: Number(PORT) });
   console.log(`🟢 WebSocket server started on port ${PORT}`);
   console.log(`📡 Connect at: ws://localhost:${PORT}`);
 
-  // Checking that functions work
-  console.log("🔍 Checking getInitialState...");
-  const testData = getInitialState();
-  console.log("✅ getInitialState works:", testData);
+  let currentData = getInitialState();
 
-  let currentData = testData;
-
-  wss.on("connection", (ws) => {
+  wss.on("connection", (ws: WebSocket) => {
     console.log(`👤 New client connected! (Total: ${wss.clients.size})`);
 
     try {
@@ -27,11 +22,11 @@ try {
       );
       console.log("📤 Initial data sent");
     } catch (error) {
-      console.error("❌ Send error:", error);
+      console.error("❌ Error sending data:", error);
     }
 
     ws.on("message", (message) => {
-      console.log(`📨 Received message: ${message}`);
+      console.log(`📨 Message received: ${message}`);
     });
 
     ws.on("close", () => {
@@ -57,7 +52,7 @@ try {
 
       wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-          client.send(message);
+          (client as WebSocket).send(message);
         }
       });
     } catch (error) {
