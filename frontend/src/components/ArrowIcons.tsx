@@ -25,5 +25,3 @@ export const ArrowDown: FC<{ className?: string }> = ({ className = "" }) => (
     <path d="M10 15l-5-8h10l-5 8z" />
   </svg>
 );
-
-export default ArrowUp;

@@ -15,3 +15,9 @@ export interface WebSocketMessage {
   type: "init" | "update";
   data: DashboardData;
 }
+
+export type ConnectionStatus =
+  | "connecting"
+  | "online"
+  | "reconnecting"
+  | "offline";

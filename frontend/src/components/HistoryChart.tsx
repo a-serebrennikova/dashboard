@@ -8,10 +8,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { DashboardData } from "../types/graphTypes";
+import type { DashboardData, HistoryPoint } from "../types/graphTypes";
 
 interface HistoryChartProps {
   data: DashboardData;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: HistoryPoint }>;
+  label?: string;
 }
 
 const HistoryChart = ({ data }: HistoryChartProps) => (
@@ -49,8 +55,7 @@ const HistoryChart = ({ data }: HistoryChartProps) => (
 
 export default HistoryChart;
 
-function CustomTooltip(props: any) {
-  const { active, payload, label } = props;
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload || !payload.length) return null;
   const point = payload[0].payload;
   return (
