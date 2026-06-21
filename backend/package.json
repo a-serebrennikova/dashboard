@@ -13,6 +13,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "dashboard-shared": "file:../shared",
     "winston": "^3.19.0",
     "ws": "8.21.0"
   },

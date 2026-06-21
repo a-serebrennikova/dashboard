@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { generateNewData, getInitialState } from "./dataGenerated.js";
 import { logger } from "./logger.js";
+import type { DashboardData, MessageType } from "dashboard-shared";
 
 const PORT = process.env.PORT || 8080;
 
@@ -14,13 +15,13 @@ try {
 
   let currentData = getInitialState();
 
-  const createMessage = (type: "init" | "update", data: unknown) =>
+  const createMessage = (type: MessageType, data: DashboardData) =>
     JSON.stringify({ type, data });
 
   const sendMessage = (
     ws: WebSocket,
-    type: "init" | "update",
-    data: unknown,
+    type: MessageType,
+    data: DashboardData,
   ) => {
     try {
       ws.send(createMessage(type, data));

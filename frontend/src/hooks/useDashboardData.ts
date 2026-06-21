@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { webSocketMessageSchema } from "dashboard-shared";
 import type {
   ConnectionStatus,
   DashboardData,
@@ -10,32 +11,6 @@ const INITIAL_RETRY_DELAY_MS = 1000;
 const MAX_RETRY_DELAY_MS = 15000;
 const MAX_RECONNECT_ATTEMPTS = 8;
 const RETRY_COOLDOWN_MS = 500;
-
-function isDashboardData(value: unknown): value is DashboardData {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Partial<DashboardData>;
-  return (
-    typeof candidate.indicator1 === "number" &&
-    typeof candidate.indicator2 === "number" &&
-    typeof candidate.timestamp === "string" &&
-    Array.isArray(candidate.history)
-  );
-}
-
-function isWebSocketMessage(value: unknown): value is WebSocketMessage {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const candidate = value as Partial<WebSocketMessage>;
-  return (
-    (candidate.type === "init" || candidate.type === "update") &&
-    isDashboardData(candidate.data)
-  );
-}
 
 export function useDashboardData(url = DEFAULT_WS_URL) {
   const [connectionStatus, setConnectionStatus] =
@@ -169,14 +144,15 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
 
       ws.onmessage = (event: MessageEvent) => {
         try {
-          const message = JSON.parse(event.data);
+          const rawMessage = JSON.parse(event.data);
+          const parseResult = webSocketMessageSchema.safeParse(rawMessage);
 
-          if (!isWebSocketMessage(message)) {
-            console.error("⚠️ Invalid message format:", message);
+          if (!parseResult.success) {
+            console.error("Invalid message format", parseResult.error.format());
             return;
           }
 
-          const { type, data }: WebSocketMessage = message;
+          const { type, data }: WebSocketMessage = parseResult.data;
 
           if (type === "init" || type === "update") {
             setData(data);

@@ -1,15 +1,4 @@
-export interface HistoryPoint {
-  time: string;
-  indicator1: number;
-  indicator2: number;
-}
-
-interface State {
-  indicator1: number;
-  indicator2: number;
-  timestamp: string;
-  history: HistoryPoint[];
-}
+import type { DashboardData, HistoryPoint } from "dashboard-shared";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
@@ -23,7 +12,7 @@ const createPoint = (indicator1: number, indicator2: number): HistoryPoint => ({
   indicator2,
 });
 
-const state: State = {
+const state: DashboardData = {
   indicator1: 45,
   indicator2: 30,
   timestamp: new Date().toLocaleTimeString(),
@@ -32,14 +21,14 @@ const state: State = {
   ),
 };
 
-const snapshot = (state: State): State => ({
+const snapshot = (state: DashboardData): DashboardData => ({
   indicator1: state.indicator1,
   indicator2: state.indicator2,
   timestamp: state.timestamp,
   history: [...state.history],
 });
 
-export function generateNewData(): State {
+export function generateNewData(): DashboardData {
   state.indicator1 = clamp(state.indicator1 + randomBetween(-10, 10), 1, 100);
   state.indicator2 = clamp(state.indicator2 + randomBetween(-10, 10), 1, 100);
   state.timestamp = new Date().toLocaleTimeString();
@@ -50,6 +39,6 @@ export function generateNewData(): State {
   return snapshot(state);
 }
 
-export function getInitialState(): State {
+export function getInitialState(): DashboardData {
   return snapshot(state);
 }

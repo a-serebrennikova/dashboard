@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import type { DashboardData } from "../types/graphTypes";
+import type { DashboardData } from "dashboard-shared";
 import IndicatorCard from "./IndicatorCard";
 import HistoryChart from "./HistoryChart";
 
