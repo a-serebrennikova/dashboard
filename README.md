@@ -55,7 +55,8 @@ This is useful for hosting providers such as Render.
    - `VITE_WS_URL=wss://<your-backend-host>`
 3. Deploy frontend (Vercel):
    - Root directory: `frontend`
-   - Build command: `npm run build`
+   - Install command: `npm ci --include=dev`
+   - Build command: `npm run build:vercel`
    - Output directory: `dist`
 4. Verify:
    - Frontend opens successfully
