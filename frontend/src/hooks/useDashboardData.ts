@@ -18,17 +18,18 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
 
     ws.onmessage = (event: MessageEvent) => {
       try {
-        const message: WebSocketMessage = JSON.parse(event.data);
+        const { type, data }: WebSocketMessage = JSON.parse(event.data);
 
-        if (message.type === "init" || message.type === "update") {
+        if (type === "init" || type === "update") {
+          const { indicator1, indicator2, timestamp, history } = data;
           setData({
-            indicator1: message.data.indicator1,
-            indicator2: message.data.indicator2,
-            timestamp: message.data.timestamp,
-            history: [...message.data.history],
+            indicator1: indicator1,
+            indicator2: indicator2,
+            timestamp: timestamp,
+            history: [...history],
           });
         } else {
-          console.error("⚠️ Unknown message type:", (message as any).type);
+          console.error("⚠️ Unknown message type:", type);
         }
       } catch (error) {
         console.error("❌ Parsing error:", error);

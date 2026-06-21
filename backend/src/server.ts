@@ -1,5 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { generateNewData, getInitialState } from "./dataGenerated.js";
+import { logger } from "./logger.js";
 
 const PORT = process.env.PORT || 8080;
 
@@ -8,8 +9,8 @@ let intervalId: ReturnType<typeof setInterval>;
 
 try {
   wss = new WebSocketServer({ port: Number(PORT) });
-  console.log(`🟢 WebSocket server started on port ${PORT}`);
-  console.log(`📡 Connect at: ws://localhost:${PORT}`);
+  logger.info(`WebSocket server started on port ${PORT}`);
+  logger.info(`Connect at: ws://localhost:${PORT}`);
 
   let currentData = getInitialState();
 
@@ -24,59 +25,59 @@ try {
     try {
       ws.send(createMessage(type, data));
     } catch (error) {
-      console.error(`❌ Failed to send ${type} message:`, error);
+      logger.error(`Failed to send ${type} message`, { error });
     }
   };
 
   const broadcastMessage = (message: string) => {
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        (client as WebSocket).send(message);
+        client.send(message);
       }
     });
   };
 
   wss.on("connection", (ws: WebSocket) => {
-    console.log(`👤 New client connected! (Total: ${wss.clients.size})`);
+    logger.info(`New client connected (Total: ${wss.clients.size})`);
 
     sendMessage(ws, "init", currentData);
-    console.log("📤 Initial data sent");
+    logger.info("Initial data sent");
 
     ws.on("message", (message) => {
-      console.log(`📨 Message received: ${message}`);
+      logger.info(`Message received: ${message}`);
     });
 
     ws.on("close", () => {
-      console.log(`👋 Client disconnected (Remaining: ${wss.clients.size})`);
+      logger.info(`Client disconnected (Remaining: ${wss.clients.size})`);
     });
   });
 
-  console.log("⏳ Starting interval...");
+  logger.info("Starting interval");
 
   intervalId = setInterval(() => {
     try {
       currentData = generateNewData();
       const updateMessage = createMessage("update", currentData);
 
-      console.log(
-        `📊 Indicator1: ${currentData.indicator1}, Indicator2: ${currentData.indicator2}`,
+      logger.debug(
+        `Time: ${currentData.timestamp} - Indicator1: ${currentData.indicator1}, Indicator2: ${currentData.indicator2}`,
       );
 
       broadcastMessage(updateMessage);
     } catch (error) {
-      console.error("❌ Interval error:", error);
+      logger.error("Interval error", { error });
     }
   }, 5000);
 
-  console.log("✅ Interval started!");
+  logger.info("Interval started");
 } catch (error) {
-  console.error("❌ CRITICAL ERROR:", error);
+  logger.error("Critical server startup error", { error });
 }
 
 process.on("SIGINT", () => {
   clearInterval(intervalId);
   wss.close(() => {
-    console.log("\n🛑 Server stopped");
+    logger.info("Server stopped");
     process.exit(0);
   });
 });

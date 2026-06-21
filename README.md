@@ -14,7 +14,6 @@ This app demonstrates a basic real-time dashboard using:
 
 Created as a learning project to practice:
 
-- building a React app
 - creating a Node.js WebSocket server
 - sending live updates through WebSockets
 
