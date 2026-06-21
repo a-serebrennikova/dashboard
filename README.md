@@ -49,7 +49,7 @@ This is useful for hosting providers such as Render.
 
 1. Deploy backend (Render):
    - Root directory: `backend`
-   - Build command: `npm ci && npm run build`
+   - Build command: `npm ci --include=dev && npm run build`
    - Start command: `npm run start`
 2. Copy deployed backend URL and configure frontend env:
    - `VITE_WS_URL=wss://<your-backend-host>`
