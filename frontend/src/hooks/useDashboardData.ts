@@ -6,7 +6,8 @@ import type {
   WebSocketMessage,
 } from "../types/graphTypes";
 
-const DEFAULT_WS_URL = "ws://localhost:8080";
+const envWsUrl = import.meta.env.VITE_WS_URL?.trim();
+const DEFAULT_WS_URL = envWsUrl ? envWsUrl : "ws://localhost:8080";
 const INITIAL_RETRY_DELAY_MS = 1000;
 const MAX_RETRY_DELAY_MS = 15000;
 const MAX_RECONNECT_ATTEMPTS = 8;

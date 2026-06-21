@@ -1,17 +1,38 @@
+import http from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 import { generateNewData, getInitialState } from "./dataGenerated.js";
 import { logger } from "./logger.js";
 import type { DashboardData, MessageType } from "dashboard-shared";
 
-const PORT = process.env.PORT || 8080;
+const DEFAULT_PORT = 8080;
+const parsedPort = Number.parseInt(process.env.PORT ?? "", 10);
+const PORT =
+  Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : DEFAULT_PORT;
+const HEALTH_PATH = "/health";
 
 let wss: WebSocketServer;
+let httpServer: http.Server;
 let intervalId: ReturnType<typeof setInterval>;
 
 try {
-  wss = new WebSocketServer({ port: Number(PORT) });
-  logger.info(`WebSocket server started on port ${PORT}`);
-  logger.info(`Connect at: ws://localhost:${PORT}`);
+  httpServer = http.createServer((req, res) => {
+    if (req.url === HEALTH_PATH) {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "ok" }));
+      return;
+    }
+
+    res.writeHead(404, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ message: "Not found" }));
+  });
+
+  wss = new WebSocketServer({ server: httpServer });
+
+  httpServer.listen(PORT, () => {
+    logger.info(`HTTP/WebSocket server started on port ${PORT}`);
+    logger.info(`Health endpoint: http://localhost:${PORT}${HEALTH_PATH}`);
+    logger.info(`WebSocket endpoint: ws://localhost:${PORT}`);
+  });
 
   let currentData = getInitialState();
 
@@ -75,10 +96,40 @@ try {
   logger.error("Critical server startup error", { error });
 }
 
-process.on("SIGINT", () => {
-  clearInterval(intervalId);
-  wss.close(() => {
-    logger.info("Server stopped");
-    process.exit(0);
-  });
-});
+const shutdown = () => {
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
+
+  if (wss) {
+    wss.clients.forEach((client) => {
+      client.terminate();
+    });
+
+    wss.close(() => {
+      if (httpServer) {
+        httpServer.close(() => {
+          logger.info("Server stopped");
+          process.exit(0);
+        });
+      } else {
+        logger.info("Server stopped");
+        process.exit(0);
+      }
+    });
+    return;
+  }
+
+  if (httpServer) {
+    httpServer.close(() => {
+      logger.info("Server stopped");
+      process.exit(0);
+    });
+    return;
+  }
+
+  process.exit(0);
+};
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
