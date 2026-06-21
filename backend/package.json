@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "dev": "NODE_ENV=development tsx watch src/server.ts",
-    "build": "tsc -p .",
+    "build:shared": "npm --prefix ../shared ci && npm --prefix ../shared run build",
+    "build": "npm run build:shared && tsc -p .",
     "start": "NODE_ENV=production node dist/server.js"
   },
   "keywords": [],
