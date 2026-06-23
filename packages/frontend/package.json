@@ -1,20 +1,21 @@
 {
-  "name": "dashboad-frontend",
+  "name": "@package/dashboard-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run build --prefix ../shared",
     "build": "tsc -b && vite build",
-    "build:vercel": "npm --prefix ../shared run build && npm run build",
+    "build:vercel": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "dashboard-shared": "file:../shared",
+    "@package/dashboard-shared": "1.0.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "recharts": "^3.8.1"
+    "recharts": "3.8.1"
   },
   "optionalDependencies": {
     "@rolldown/binding-linux-x64-gnu": "1.0.3"
@@ -25,16 +26,16 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.1",
+    "autoprefixer": "10.4.14",
     "esbuild": "0.28.1",
     "eslint": "10.3.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.2",
     "globals": "17.6.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "3.4.7",
     "typescript": "6.0.2",
     "typescript-eslint": "8.59.2",
-    "vite": "^8.0.16",
-    "tailwindcss": "^3.4.7",
-    "postcss": "^8.4.26",
-    "autoprefixer": "^10.4.14"
+    "vite": "8.0.16"
   }
 }

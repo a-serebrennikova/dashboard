@@ -1,5 +1,5 @@
+import type { ConnectionStatus } from "@package/dashboard-shared/contracts/ws";
 import type { FC } from "react";
-import type { ConnectionStatus } from "../types/graphTypes";
 
 interface StatusBadgeProps {
   connectionStatus?: ConnectionStatus;

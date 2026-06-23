@@ -1,0 +1,38 @@
+{
+  "name": "@package/dashboard-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "dev": "dotenv -e .env -- tsx watch src/server.ts",
+    "prebuild": "npm run build --prefix ../shared",
+    "build": "tsc -p .",
+    "build:render": "npm run build",
+    "start": "NODE_ENV=production node dist/server.js",
+    "migrate": "dotenv -e .env -- tsx scripts/migrate.ts",
+    "seed": "dotenv -e .env -- tsx scripts/seed.ts"
+  },
+  "keywords": [],
+  "author": "Anastasiia Serebrennikova",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@package/dashboard-shared": "1.0.0",
+    "better-sqlite3": "12.11.1",
+    "kysely": "0.29.2",
+    "pg": "8.22.0",
+    "uuid": "14.0.1",
+    "winston": "3.19.0",
+    "ws": "8.21.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "20.5.6",
+    "@types/pg": "8.20.0",
+    "@types/uuid": "10.0.0",
+    "@types/ws": "8.5.5",
+    "dotenv-cli": "11.0.0",
+    "tsx": "4.22.4",
+    "typescript": "6.0.2"
+  }
+}

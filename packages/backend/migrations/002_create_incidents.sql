@@ -1,0 +1,12 @@
+CREATE TABLE incidents (
+  id TEXT PRIMARY KEY,
+  serviceId TEXT NOT NULL,
+  title VARCHAR(500) NOT NULL,
+  description TEXT,
+  severity VARCHAR(50) NOT NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'open',
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  resolvedAt DATETIME,
+  FOREIGN KEY (serviceId) REFERENCES services(id) ON DELETE CASCADE
+);
