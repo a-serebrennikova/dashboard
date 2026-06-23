@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { webSocketMessageSchema } from "dashboard-shared";
+import { webSocketMessageSchema } from "dashboard-shared/contracts/ws";
 import type {
   ConnectionStatus,
   DashboardData,
@@ -7,7 +7,11 @@ import type {
 } from "../types/graphTypes";
 
 const envWsUrl = import.meta.env.VITE_WS_URL?.trim();
-const DEFAULT_WS_URL = envWsUrl ? envWsUrl : "ws://localhost:8080";
+const envWsUrlDev = import.meta.env.VITE_WS_URL_DEV?.trim();
+const DEFAULT_WS_URL = import.meta.env.DEV
+  ? (envWsUrlDev ?? envWsUrl)
+  : envWsUrl;
+
 const INITIAL_RETRY_DELAY_MS = 1000;
 const MAX_RETRY_DELAY_MS = 15000;
 const MAX_RECONNECT_ATTEMPTS = 8;
@@ -134,7 +138,16 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
         reconnectAttemptRef.current > 0 ? "reconnecting" : "connecting",
       );
 
-      const ws = new WebSocket(url);
+      let ws: WebSocket;
+
+      try {
+        ws = new WebSocket(url);
+      } catch (error) {
+        console.error(`❌ Failed to open WebSocket with URL '${url}'`, error);
+        scheduleReconnect();
+        return;
+      }
+
       wsRef.current = ws;
 
       ws.onopen = () => {

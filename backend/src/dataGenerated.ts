@@ -1,4 +1,7 @@
-import type { DashboardData, HistoryPoint } from "dashboard-shared";
+import type {
+  DashboardData,
+  HistoryPoint,
+} from "dashboard-shared/contracts/dashboard";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));

@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import type { DashboardData } from "dashboard-shared";
+import type { DashboardData } from "dashboard-shared/contracts/dashboard";
 import IndicatorCard from "./IndicatorCard";
 import HistoryChart from "./HistoryChart";
 

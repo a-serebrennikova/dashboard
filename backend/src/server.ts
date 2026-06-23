@@ -2,7 +2,9 @@ import http from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 import { generateNewData, getInitialState } from "./dataGenerated.js";
 import { logger } from "./logger.js";
-import type { DashboardData, MessageType } from "dashboard-shared";
+import { webSocketMessageSchema } from "dashboard-shared/contracts/ws";
+import type { DashboardData } from "dashboard-shared/contracts/dashboard";
+import type { MessageType } from "dashboard-shared/contracts/ws";
 
 const DEFAULT_PORT = 8080;
 const parsedPort = Number.parseInt(process.env.PORT ?? "", 10);
@@ -36,8 +38,10 @@ try {
 
   let currentData = getInitialState();
 
-  const createMessage = (type: MessageType, data: DashboardData) =>
-    JSON.stringify({ type, data });
+  const createMessage = (type: MessageType, data: DashboardData) => {
+    const payload = webSocketMessageSchema.parse({ type, data });
+    return JSON.stringify(payload);
+  };
 
   const sendMessage = (
     ws: WebSocket,

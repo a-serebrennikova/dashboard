@@ -20,30 +20,17 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install shared deps
-        run: npm ci
-        working-directory: shared
+      - name: Install deps (workspace root)
+        run: npm ci --include=dev
 
       - name: Build shared
-        run: npm run build
-        working-directory: shared
-
-      - name: Install backend deps
-        run: npm ci
-        working-directory: backend
-
-      - name: Install frontend deps
-        run: npm ci
-        working-directory: frontend
+        run: npm -w shared run build
 
       - name: Build backend
-        run: npm run build
-        working-directory: backend
+        run: npm -w backend run build
 
       - name: Build frontend
-        run: npm run build
-        working-directory: frontend
+        run: npm -w frontend run build
 
       - name: Lint frontend
-        run: npm run lint
-        working-directory: frontend
+        run: npm -w frontend run lint

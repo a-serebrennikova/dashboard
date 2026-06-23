@@ -1,8 +1,9 @@
 export type {
   DashboardData,
   HistoryPoint,
-  WebSocketMessage,
-} from "dashboard-shared";
+} from "dashboard-shared/contracts/dashboard";
+
+export type { WebSocketMessage } from "dashboard-shared/contracts/ws";
 
 export type ConnectionStatus =
   | "connecting"

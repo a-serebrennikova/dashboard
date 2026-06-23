@@ -5,8 +5,9 @@
   "main": "server.js",
   "scripts": {
     "dev": "NODE_ENV=development tsx watch src/server.ts",
-    "build:shared": "npm --prefix ../shared ci --include=dev && npm --prefix ../shared run build",
-    "build": "npm run build:shared && tsc -p .",
+    "build:shared": "npm --prefix ../shared run build",
+    "build": "tsc -p .",
+    "build:render": "npm run build:shared && npm run build",
     "start": "NODE_ENV=production node dist/server.js"
   },
   "keywords": [],
@@ -15,7 +16,7 @@
   "type": "module",
   "dependencies": {
     "dashboard-shared": "file:../shared",
-    "winston": "^3.19.0",
+    "winston": "3.19.0",
     "ws": "8.21.0"
   },
   "devDependencies": {
