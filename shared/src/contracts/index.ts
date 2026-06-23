@@ -3,11 +3,11 @@ export {
   dashboardDataSchema,
   type HistoryPoint,
   type DashboardData,
-} from "./contracts/dashboard.js";
+} from "./dashboard.js";
 
 export {
   wsMessageTypeSchema,
   webSocketMessageSchema,
   type MessageType,
   type WebSocketMessage,
-} from "./contracts/ws.js";
+} from "./ws.js";

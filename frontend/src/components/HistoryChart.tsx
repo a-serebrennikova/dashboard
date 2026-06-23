@@ -8,7 +8,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { DashboardData, HistoryPoint } from "dashboard-shared";
+import type {
+  DashboardData,
+  HistoryPoint,
+} from "dashboard-shared/contracts/dashboard";
 
 interface HistoryChartProps {
   data: DashboardData;
