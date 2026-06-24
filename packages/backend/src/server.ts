@@ -1,27 +1,42 @@
 import http from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
-import { generateNewData, getInitialState } from "./dataGenerated.js";
-import { logger } from "./logger.js";
-import { webSocketMessageSchema } from "dashboard-shared/contracts/ws";
-import type { DashboardData } from "dashboard-shared/contracts/dashboard";
-import type { MessageType } from "dashboard-shared/contracts/ws";
+import { logger } from "./logger";
+import { getDashboardPayload } from "./services/dashboardService";
+import { webSocketMessageSchema } from "@package/dashboard-shared/contracts/ws";
+import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
+import type { MessageType } from "@package/dashboard-shared/contracts/ws";
 
 const DEFAULT_PORT = 8080;
 const parsedPort = Number.parseInt(process.env.PORT ?? "", 10);
 const PORT =
   Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : DEFAULT_PORT;
 const HEALTH_PATH = "/health";
+const SNAPSHOT_PATH = "/api/snapshot";
 
 let wss: WebSocketServer;
 let httpServer: http.Server;
 let intervalId: ReturnType<typeof setInterval>;
 
 try {
-  httpServer = http.createServer((req, res) => {
+  httpServer = http.createServer(async (req, res) => {
     if (req.url === HEALTH_PATH) {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "ok" }));
+      res.end(JSON.stringify({ status: "ok", port: PORT }));
       return;
+    }
+
+    if (req.url === SNAPSHOT_PATH && req.method === "GET") {
+      try {
+        const payload = await getDashboardPayload();
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(payload));
+        return;
+      } catch (error) {
+        logger.error("Failed to get snapshot", { error });
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Failed to get snapshot" }));
+        return;
+      }
     }
 
     res.writeHead(404, { "Content-Type": "application/json" });
@@ -33,12 +48,13 @@ try {
   httpServer.listen(PORT, () => {
     logger.info(`HTTP/WebSocket server started on port ${PORT}`);
     logger.info(`Health endpoint: http://localhost:${PORT}${HEALTH_PATH}`);
+    logger.info(`Snapshot endpoint: http://localhost:${PORT}${SNAPSHOT_PATH}`);
     logger.info(`WebSocket endpoint: ws://localhost:${PORT}`);
   });
 
-  let currentData = getInitialState();
+  let currentData: DashboardPayload | null = null;
 
-  const createMessage = (type: MessageType, data: DashboardData) => {
+  const createMessage = (type: MessageType, data: DashboardPayload) => {
     const payload = webSocketMessageSchema.parse({ type, data });
     return JSON.stringify(payload);
   };
@@ -46,7 +62,7 @@ try {
   const sendMessage = (
     ws: WebSocket,
     type: MessageType,
-    data: DashboardData,
+    data: DashboardPayload,
   ) => {
     try {
       ws.send(createMessage(type, data));
@@ -63,11 +79,20 @@ try {
     });
   };
 
-  wss.on("connection", (ws: WebSocket) => {
+  wss.on("connection", async (ws: WebSocket) => {
     logger.info(`New client connected (Total: ${wss.clients.size})`);
 
-    sendMessage(ws, "init", currentData);
-    logger.info("Initial data sent");
+    try {
+      if (!currentData) {
+        currentData = await getDashboardPayload();
+      }
+      sendMessage(ws, "init", currentData);
+      logger.info("Initial data sent");
+    } catch (error) {
+      logger.error("Failed to send initial data", { error });
+      ws.close();
+      return;
+    }
 
     ws.on("message", (message) => {
       logger.info(`Message received: ${message}`);
@@ -78,15 +103,15 @@ try {
     });
   });
 
-  logger.info("Starting interval");
+  logger.info("Starting update interval");
 
-  intervalId = setInterval(() => {
+  intervalId = setInterval(async () => {
     try {
-      currentData = generateNewData();
+      currentData = await getDashboardPayload();
       const updateMessage = createMessage("update", currentData);
 
       logger.debug(
-        `Time: ${currentData.timestamp} - Indicator1: ${currentData.indicator1}, Indicator2: ${currentData.indicator2}`,
+        `[Update] GeneratedAt: ${currentData.generatedAt}, Open: ${currentData.snapshot.openCount}, Critical: ${currentData.snapshot.criticalCount}`,
       );
 
       broadcastMessage(updateMessage);
@@ -95,7 +120,7 @@ try {
     }
   }, 5000);
 
-  logger.info("Interval started");
+  logger.info("Update interval started");
 } catch (error) {
   logger.error("Critical server startup error", { error });
 }

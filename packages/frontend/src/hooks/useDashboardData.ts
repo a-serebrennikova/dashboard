@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { webSocketMessageSchema } from "dashboard-shared/contracts/ws";
+import { webSocketMessageSchema } from "@package/dashboard-shared/contracts/ws";
 import type {
   ConnectionStatus,
-  DashboardData,
   WebSocketMessage,
-} from "../types/graphTypes";
+} from "@package/dashboard-shared/contracts/ws";
+import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
 
 const envWsUrl = import.meta.env.VITE_WS_URL?.trim();
 const envWsUrlDev = import.meta.env.VITE_WS_URL_DEV?.trim();
@@ -17,70 +17,85 @@ const MAX_RETRY_DELAY_MS = 15000;
 const MAX_RECONNECT_ATTEMPTS = 8;
 const RETRY_COOLDOWN_MS = 500;
 
+type DashboardSocketState = {
+  ws: WebSocket | null;
+  reconnectTimeoutId: ReturnType<typeof setTimeout> | null;
+  reconnectIntervalId: ReturnType<typeof setInterval> | null;
+  retryCooldownTimeoutId: ReturnType<typeof setTimeout> | null;
+  reconnectAttempt: number;
+  shouldReconnect: boolean;
+  retryAt: number | null;
+  isUnmounting: boolean;
+  manualRetryLocked: boolean;
+};
+
 export function useDashboardData(url = DEFAULT_WS_URL) {
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>("connecting");
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] = useState<DashboardPayload | null>(null);
   const [reconnectNonce, setReconnectNonce] = useState(0);
   const [isRetryCooldown, setIsRetryCooldown] = useState(false);
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const reconnectIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null,
-  );
-  const reconnectAttemptRef = useRef(0);
-  const shouldReconnectRef = useRef(true);
-  const retryCooldownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const manualRetryLockedRef = useRef(false);
-  const retryAtRef = useRef<number | null>(null);
+
+  const socketStateRef = useRef<DashboardSocketState>({
+    ws: null,
+    reconnectTimeoutId: null,
+    reconnectIntervalId: null,
+    retryCooldownTimeoutId: null,
+    reconnectAttempt: 0,
+    shouldReconnect: true,
+    retryAt: null,
+    isUnmounting: false,
+    manualRetryLocked: false,
+  });
+
   const [nextRetryInSeconds, setNextRetryInSeconds] = useState<number | null>(
     null,
   );
 
   const retryNow = useCallback(() => {
-    if (manualRetryLockedRef.current) {
+    const state = socketStateRef.current;
+
+    if (state.manualRetryLocked) {
       return;
     }
 
-    manualRetryLockedRef.current = true;
+    state.manualRetryLocked = true;
     setIsRetryCooldown(true);
-    if (retryCooldownTimeoutRef.current) {
-      clearTimeout(retryCooldownTimeoutRef.current);
+    if (state.retryCooldownTimeoutId) {
+      clearTimeout(state.retryCooldownTimeoutId);
     }
-    retryCooldownTimeoutRef.current = setTimeout(() => {
-      manualRetryLockedRef.current = false;
+    state.retryCooldownTimeoutId = setTimeout(() => {
+      state.manualRetryLocked = false;
       setIsRetryCooldown(false);
-      retryCooldownTimeoutRef.current = null;
+      state.retryCooldownTimeoutId = null;
     }, RETRY_COOLDOWN_MS);
 
     setReconnectNonce((value) => value + 1);
   }, []);
 
   useEffect(() => {
-    shouldReconnectRef.current = true;
+    const state = socketStateRef.current;
+    state.shouldReconnect = true;
+    state.isUnmounting = false;
 
     const clearReconnectTimeout = () => {
-      if (!reconnectTimeoutRef.current) {
+      if (!state.reconnectTimeoutId) {
         return;
       }
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
+      clearTimeout(state.reconnectTimeoutId);
+      state.reconnectTimeoutId = null;
     };
 
     const clearReconnectInterval = () => {
-      if (!reconnectIntervalRef.current) {
+      if (!state.reconnectIntervalId) {
         return;
       }
-      clearInterval(reconnectIntervalRef.current);
-      reconnectIntervalRef.current = null;
+      clearInterval(state.reconnectIntervalId);
+      state.reconnectIntervalId = null;
     };
 
     const resetRetryState = () => {
-      retryAtRef.current = null;
+      state.retryAt = null;
       clearReconnectInterval();
       setNextRetryInSeconds(null);
     };
@@ -88,15 +103,15 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
     const startRetryCountdown = () => {
       clearReconnectInterval();
 
-      reconnectIntervalRef.current = setInterval(() => {
-        if (!retryAtRef.current) {
+      state.reconnectIntervalId = setInterval(() => {
+        if (!state.retryAt) {
           resetRetryState();
           return;
         }
 
         const remainingSeconds = Math.max(
           0,
-          Math.ceil((retryAtRef.current - Date.now()) / 1000),
+          Math.ceil((state.retryAt - Date.now()) / 1000),
         );
         setNextRetryInSeconds(remainingSeconds);
 
@@ -107,35 +122,35 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
     };
 
     const scheduleReconnect = () => {
-      if (!shouldReconnectRef.current) {
+      if (!state.shouldReconnect) {
         return;
       }
 
-      if (reconnectAttemptRef.current >= MAX_RECONNECT_ATTEMPTS) {
-        shouldReconnectRef.current = false;
+      if (state.reconnectAttempt >= MAX_RECONNECT_ATTEMPTS) {
+        state.shouldReconnect = false;
         setConnectionStatus("offline");
         resetRetryState();
         return;
       }
 
-      reconnectAttemptRef.current += 1;
+      state.reconnectAttempt += 1;
       const delay = Math.min(
-        INITIAL_RETRY_DELAY_MS * 2 ** (reconnectAttemptRef.current - 1),
+        INITIAL_RETRY_DELAY_MS * 2 ** (state.reconnectAttempt - 1),
         MAX_RETRY_DELAY_MS,
       );
 
       setConnectionStatus("reconnecting");
-      retryAtRef.current = Date.now() + delay;
+      state.retryAt = Date.now() + delay;
       setNextRetryInSeconds(Math.ceil(delay / 1000));
       startRetryCountdown();
-      reconnectTimeoutRef.current = setTimeout(connect, delay);
+      state.reconnectTimeoutId = setTimeout(connect, delay);
     };
 
     const connect = () => {
       clearReconnectTimeout();
       resetRetryState();
       setConnectionStatus(
-        reconnectAttemptRef.current > 0 ? "reconnecting" : "connecting",
+        state.reconnectAttempt > 0 ? "reconnecting" : "connecting",
       );
 
       let ws: WebSocket;
@@ -148,15 +163,24 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
         return;
       }
 
-      wsRef.current = ws;
+      state.ws = ws;
 
       ws.onopen = () => {
-        reconnectAttemptRef.current = 0;
-        shouldReconnectRef.current = true;
+        if (state.isUnmounting) {
+          ws.close();
+          return;
+        }
+
+        state.reconnectAttempt = 0;
+        state.shouldReconnect = true;
         setConnectionStatus("online");
       };
 
       ws.onmessage = (event: MessageEvent) => {
+        if (state.isUnmounting) {
+          return;
+        }
+
         try {
           const rawMessage = JSON.parse(event.data);
           const parseResult = webSocketMessageSchema.safeParse(rawMessage);
@@ -179,7 +203,11 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
       };
 
       ws.onclose = () => {
-        if (!shouldReconnectRef.current) {
+        if (state.isUnmounting) {
+          return;
+        }
+
+        if (!state.shouldReconnect) {
           setConnectionStatus("offline");
           return;
         }
@@ -187,6 +215,10 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
       };
 
       ws.onerror = (error: Event) => {
+        if (state.isUnmounting) {
+          return;
+        }
+
         console.error("❌ WebSocket error:", error);
       };
     };
@@ -194,17 +226,25 @@ export function useDashboardData(url = DEFAULT_WS_URL) {
     connect();
 
     return () => {
-      shouldReconnectRef.current = false;
+      state.isUnmounting = true;
+      state.shouldReconnect = false;
       clearReconnectTimeout();
       resetRetryState();
-      if (retryCooldownTimeoutRef.current) {
-        clearTimeout(retryCooldownTimeoutRef.current);
-        retryCooldownTimeoutRef.current = null;
+      if (state.retryCooldownTimeoutId) {
+        clearTimeout(state.retryCooldownTimeoutId);
+        state.retryCooldownTimeoutId = null;
       }
-      manualRetryLockedRef.current = false;
+      state.manualRetryLocked = false;
       setIsRetryCooldown(false);
-      wsRef.current?.close();
-      wsRef.current = null;
+      if (state.ws) {
+        if (
+          state.ws.readyState === WebSocket.OPEN ||
+          state.ws.readyState === WebSocket.CLOSING
+        ) {
+          state.ws.close();
+        }
+        state.ws = null;
+      }
       setConnectionStatus("offline");
     };
   }, [url, reconnectNonce]);

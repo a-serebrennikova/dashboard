@@ -3,14 +3,17 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
-    "frontend",
-    "backend",
-    "shared"
+    "./packages/*"
   ],
   "scripts": {
-    "build": "npm -w shared run build && npm -w backend run build && npm -w frontend run build",
-    "dev": "concurrently \"npm -w backend run dev\" \"npm -w frontend run dev\"",
-    "lint": "npm -w frontend run lint"
+    "build:shared": "npm run build --prefix packages/shared",
+    "build:frontend": "npm run build --prefix packages/frontend",
+    "build:backend": "npm run build --prefix packages/backend",
+    "build:all": "npm run build:shared && npm run build:backend && npm run build:frontend",
+    "build:vercel": "npm run build:shared && npm run build:frontend",
+    "build:render": "npm run build:shared && npm run build:backend",
+    "dev": "concurrently \"npm -w packages/backend run dev\" \"npm -w packages/frontend run dev\"",
+    "lint": "npm -w packages/frontend run lint"
   },
   "devDependencies": {
     "concurrently": "9.2.3"

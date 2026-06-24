@@ -1,0 +1,9 @@
+CREATE TABLE incident_events (
+  id TEXT PRIMARY KEY,
+  incidentId TEXT NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  message TEXT NOT NULL,
+  severity VARCHAR(50),
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (incidentId) REFERENCES incidents(id) ON DELETE CASCADE
+);

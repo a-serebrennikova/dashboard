@@ -24,13 +24,13 @@ jobs:
         run: npm ci --include=dev
 
       - name: Build shared
-        run: npm -w shared run build
+        run: npm -w packages/shared run build
 
       - name: Build backend
-        run: npm -w backend run build
+        run: npm -w packages/backend run build
 
       - name: Build frontend
-        run: npm -w frontend run build
+        run: npm -w packages/frontend run build
 
       - name: Lint frontend
-        run: npm -w frontend run lint
+        run: npm -w packages/frontend run lint
