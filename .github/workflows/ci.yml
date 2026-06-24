@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  build-and-lint:
-    name: build-and-lint
+  build:
+    name: build
     runs-on: ubuntu-latest
 
     steps:
@@ -32,5 +32,21 @@ jobs:
       - name: Build frontend
         run: npm -w packages/frontend run build
 
-      - name: Lint frontend
-        run: npm -w packages/frontend run lint
+  frontend-tests:
+    name: frontend-tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps (workspace root)
+        run: npm ci --include=dev
+
+      - name: Run frontend tests
+        run: npm -w packages/frontend run test

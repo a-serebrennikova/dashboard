@@ -2,6 +2,7 @@ import http from "node:http";
 import { WebSocketServer, WebSocket } from "ws";
 import { logger } from "./logger";
 import { getDashboardPayload } from "./services/dashboardService";
+import { simulateDataChanges } from "./services/dataSimulator";
 import { webSocketMessageSchema } from "@package/dashboard-shared/contracts/ws";
 import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
 import type { MessageType } from "@package/dashboard-shared/contracts/ws";
@@ -67,7 +68,9 @@ try {
     try {
       ws.send(createMessage(type, data));
     } catch (error) {
-      logger.error(`Failed to send ${type} message`, { error });
+      const message =
+        error instanceof Error ? error.message : "Unknown sendMessage error";
+      logger.error(`Failed to send ${type} message: ${message}`);
     }
   };
 
@@ -89,7 +92,9 @@ try {
       sendMessage(ws, "init", currentData);
       logger.info("Initial data sent");
     } catch (error) {
-      logger.error("Failed to send initial data", { error });
+      const message =
+        error instanceof Error ? error.message : "Unknown initial send error";
+      logger.error(`Failed to send initial data: ${message}`);
       ws.close();
       return;
     }
@@ -107,6 +112,7 @@ try {
 
   intervalId = setInterval(async () => {
     try {
+      await simulateDataChanges();
       currentData = await getDashboardPayload();
       const updateMessage = createMessage("update", currentData);
 
@@ -116,7 +122,9 @@ try {
 
       broadcastMessage(updateMessage);
     } catch (error) {
-      logger.error("Interval error", { error });
+      const message =
+        error instanceof Error ? error.message : "Unknown interval error";
+      logger.error(`Interval error: ${message}`);
     }
   }, 5000);
 

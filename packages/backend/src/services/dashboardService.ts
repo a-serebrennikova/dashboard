@@ -67,7 +67,7 @@ export async function getDashboardPayload(): Promise<DashboardPayload> {
       id: service.id,
       name: service.name,
       team: service.team,
-      isActive: service.isActive,
+      isActive: Boolean(service.isActive),
       createdAt: new Date(service.createdAt).toISOString(),
       updatedAt: new Date(service.updatedAt).toISOString(),
     })) satisfies Service[],
