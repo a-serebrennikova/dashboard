@@ -1,29 +1,10 @@
 import { db } from "../db";
 import { randomUUID } from "node:crypto";
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, value));
-
-const randomDelta = (range: number) =>
-  Math.round((Math.random() * 2 - 1) * range);
-
-const pickRandom = <T>(items: T[]): T | null => {
-  if (items.length === 0) {
-    return null;
-  }
-
-  const index = Math.floor(Math.random() * items.length);
-  return items[index] ?? null;
-};
-
-const BASE_RESPONSE_TIME_MS = 120;
-const OPEN_INCIDENT_LATENCY_IMPACT_MS = 18;
-const WARNING_INCIDENT_LATENCY_IMPACT_MS = 12;
-const CRITICAL_INCIDENT_LATENCY_IMPACT_MS = 70;
-const DOWN_SERVICE_LATENCY_IMPACT_MS = 45;
-const DOWN_SERVICE_RATIO_IMPACT_MS = 140;
-const RESPONSE_TIME_JITTER_MS = 12;
-const RESPONSE_TIME_EMA_ALPHA = 0.35;
+import {
+  calculateNextSnapshot,
+  getActiveServiceIds,
+  selectActiveIncident,
+} from "./dataSimulationUtils";
 
 export async function simulateDataChanges(): Promise<void> {
   const [snapshot, services, incidents] = await Promise.all([
@@ -39,38 +20,13 @@ export async function simulateDataChanges(): Promise<void> {
     return;
   }
 
-  const activeServiceIds = new Set(
-    services.filter((s) => s.isActive).map((s) => s.id),
-  );
-
-  const nextOpenCount = clamp(snapshot.openCount + randomDelta(2), 0, 20);
-  const nextCriticalRaw = clamp(snapshot.criticalCount + randomDelta(1), 0, 10);
-  const nextCriticalCount = Math.min(nextCriticalRaw, nextOpenCount);
-  const nextWarningCount = clamp(snapshot.warningCount + randomDelta(2), 0, 15);
-
-  const totalServices = services.length;
-  const activeServices = services.reduce(
-    (count, service) => count + (Boolean(service.isActive) ? 1 : 0),
-    0,
-  );
-  const downServices = Math.max(0, totalServices - activeServices);
-  const downRatio = totalServices > 0 ? downServices / totalServices : 0;
-  const servicesPenalty =
-    downServices * DOWN_SERVICE_LATENCY_IMPACT_MS +
-    Math.round(downRatio * DOWN_SERVICE_RATIO_IMPACT_MS);
-
-  const targetResponseTime =
-    BASE_RESPONSE_TIME_MS +
-    nextOpenCount * OPEN_INCIDENT_LATENCY_IMPACT_MS +
-    nextWarningCount * WARNING_INCIDENT_LATENCY_IMPACT_MS +
-    nextCriticalCount * CRITICAL_INCIDENT_LATENCY_IMPACT_MS +
-    servicesPenalty +
-    randomDelta(RESPONSE_TIME_JITTER_MS);
-
-  const smoothedResponseTime = Math.round(
-    snapshot.avgResponseTime +
-      (targetResponseTime - snapshot.avgResponseTime) * RESPONSE_TIME_EMA_ALPHA,
-  );
+  const activeServiceIds = getActiveServiceIds(services);
+  const {
+    nextOpenCount,
+    nextCriticalCount,
+    nextWarningCount,
+    nextAverageResponseTime,
+  } = calculateNextSnapshot(snapshot, services);
 
   await db
     .updateTable("dashboard_snapshot")
@@ -78,15 +34,13 @@ export async function simulateDataChanges(): Promise<void> {
       openCount: nextOpenCount,
       criticalCount: nextCriticalCount,
       warningCount: nextWarningCount,
-      avgResponseTime: clamp(smoothedResponseTime, 80, 2000),
+      avgResponseTime: nextAverageResponseTime,
       lastUpdatedAt: new Date().toISOString(),
     })
     .where("id", "=", snapshot.id)
     .execute();
 
-  const incident = pickRandom(
-    incidents.filter((i) => activeServiceIds.has(i.serviceId)),
-  );
+  const incident = selectActiveIncident(incidents, activeServiceIds);
 
   if (!incident) {
     return;

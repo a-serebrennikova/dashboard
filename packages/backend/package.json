@@ -9,7 +9,6 @@
     "build": "tsc -p .",
     "build:render": "npm run build",
     "start": "NODE_ENV=production node dist/server.js",
-    "migrate": "dotenv -e .env -- tsx scripts/migrate.ts",
     "seed": "dotenv -e .env -- tsx scripts/seed.ts"
   },
   "keywords": [],

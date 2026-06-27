@@ -1,8 +1,6 @@
-import { Kysely, PostgresDialect, SqliteDialect, type Generated } from "kysely";
-import { Pool } from "pg";
-import Database from "better-sqlite3";
+import type { Generated } from "kysely";
 
-interface Tables {
+export interface Tables {
   services: ServiceRow;
   incidents: IncidentRow;
   incident_events: IncidentEventRow;
@@ -47,23 +45,3 @@ interface DashboardSnapshotRow {
   avgResponseTime: number;
   lastUpdatedAt: Generated<string>;
 }
-
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
-}
-
-export const db = databaseUrl.startsWith("postgresql")
-  ? new Kysely<Tables>({
-      dialect: new PostgresDialect({
-        pool: new Pool({ connectionString: databaseUrl }),
-      }),
-    })
-  : new Kysely<Tables>({
-      dialect: new SqliteDialect({
-        database: new Database(databaseUrl.replace("file:", "")),
-      }),
-    });
-
-export default db;
