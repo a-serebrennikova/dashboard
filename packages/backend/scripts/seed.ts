@@ -1,14 +1,68 @@
 import { db } from "../src/db";
+import { logger } from "../src/logger";
 import { v4 as uuidv4 } from "uuid";
 
 async function seed() {
-  console.log("🌱 Seeding database...");
+  logger.info("🌱 Seeding database...");
 
   try {
-    await db.deleteFrom("incident_events").execute();
-    await db.deleteFrom("incidents").execute();
-    await db.deleteFrom("dashboard_snapshot").execute();
-    await db.deleteFrom("services").execute();
+    // Удаление старых таблиц (в правильном порядке из-за foreign keys)
+    logger.info("  → Dropping old tables...");
+    await db.schema.dropTable("incident_events").ifExists().execute();
+    await db.schema.dropTable("incidents").ifExists().execute();
+    await db.schema.dropTable("dashboard_snapshot").ifExists().execute();
+    await db.schema.dropTable("services").ifExists().execute();
+
+    // Создание таблиц
+    await db.schema
+      .createTable("services")
+      .addColumn("id", "uuid", (col) => col.primaryKey())
+      .addColumn("name", "varchar", (col) => col.notNull())
+      .addColumn("team", "varchar", (col) => col.notNull())
+      .addColumn("isActive", "boolean", (col) => col.defaultTo(true))
+      .addColumn("createdAt", "timestamp", (col) => col.defaultTo("now()"))
+      .addColumn("updatedAt", "timestamp", (col) => col.defaultTo("now()"))
+      .execute();
+
+    await db.schema
+      .createTable("incidents")
+      .addColumn("id", "uuid", (col) => col.primaryKey())
+      .addColumn("serviceId", "uuid", (col) =>
+        col.notNull().references("services.id"),
+      )
+      .addColumn("title", "varchar", (col) => col.notNull())
+      .addColumn("description", "text")
+      .addColumn("severity", "varchar", (col) => col.notNull())
+      .addColumn("status", "varchar", (col) => col.notNull())
+      .addColumn("createdAt", "timestamp", (col) => col.defaultTo("now()"))
+      .addColumn("updatedAt", "timestamp", (col) => col.defaultTo("now()"))
+      .addColumn("resolvedAt", "timestamp")
+      .execute();
+
+    await db.schema
+      .createTable("incident_events")
+      .addColumn("id", "uuid", (col) => col.primaryKey())
+      .addColumn("incidentId", "uuid", (col) =>
+        col.notNull().references("incidents.id"),
+      )
+      .addColumn("type", "varchar", (col) => col.notNull())
+      .addColumn("message", "text", (col) => col.notNull())
+      .addColumn("severity", "varchar")
+      .addColumn("createdAt", "timestamp", (col) => col.defaultTo("now()"))
+      .execute();
+
+    await db.schema
+      .createTable("dashboard_snapshot")
+      .addColumn("id", "uuid", (col) => col.primaryKey())
+      .addColumn("openCount", "integer", (col) => col.notNull())
+      .addColumn("criticalCount", "integer", (col) => col.notNull())
+      .addColumn("warningCount", "integer", (col) => col.notNull())
+      .addColumn("avgResponseTime", "integer", (col) => col.notNull())
+      .addColumn("lastUpdatedAt", "timestamp", (col) => col.defaultTo("now()"))
+      .addColumn("createdAt", "timestamp", (col) => col.defaultTo("now()"))
+      .execute();
+
+    logger.info("  ✓ Tables created");
 
     // Создание сервисов
     const services = [
@@ -21,7 +75,7 @@ async function seed() {
 
     await db.insertInto("services").values(services).execute();
 
-    console.log(`  ✓ Created ${services.length} services`);
+    logger.info(`  ✓ Created ${services.length} services`);
 
     // Создание инцидентов
     const incidents = [
@@ -53,7 +107,7 @@ async function seed() {
 
     await db.insertInto("incidents").values(incidents).execute();
 
-    console.log(`  ✓ Created ${incidents.length} incidents`);
+    logger.info(`  ✓ Created ${incidents.length} incidents`);
 
     // События инцидентов
     const events = [
@@ -96,7 +150,7 @@ async function seed() {
 
     await db.insertInto("incident_events").values(events).execute();
 
-    console.log(`  ✓ Created ${events.length} incident events`);
+    logger.info(`  ✓ Created ${events.length} incident events`);
 
     // Снимок состояния
     const snapshot = {
@@ -109,12 +163,12 @@ async function seed() {
 
     await db.insertInto("dashboard_snapshot").values(snapshot).execute();
 
-    console.log("  ✓ Created dashboard snapshot");
-    console.log("✅ Seeding complete!");
+    logger.info("  ✓ Created dashboard snapshot");
+    logger.info("✅ Seeding complete!");
 
     process.exit(0);
   } catch (error) {
-    console.error("❌ Seeding failed:", error);
+    logger.error("❌ Seeding failed:", error);
     process.exit(1);
   }
 }

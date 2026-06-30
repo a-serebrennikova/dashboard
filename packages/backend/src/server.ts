@@ -1,48 +1,26 @@
 import http from "node:http";
-import { WebSocketServer, WebSocket } from "ws";
+import { WebSocketServer } from "ws";
 import { logger } from "./logger";
-import { getDashboardPayload } from "./services/dashboardService";
-import { simulateDataChanges } from "./services/dataSimulator";
-import { webSocketMessageSchema } from "@package/dashboard-shared/contracts/ws";
+import {
+  createRequestHandler,
+  HEALTH_PATH,
+  SNAPSHOT_PATH,
+} from "./server/httpRoutes";
+import {
+  createDashboardMessage,
+  createSimulationLoop,
+} from "./server/simulationLoop";
 import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
-import type { MessageType } from "@package/dashboard-shared/contracts/ws";
 
 const DEFAULT_PORT = 8080;
-const parsedPort = Number.parseInt(process.env.PORT ?? "", 10);
-const PORT =
-  Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : DEFAULT_PORT;
-const HEALTH_PATH = "/health";
-const SNAPSHOT_PATH = "/api/snapshot";
+const parsedPort = Number(process.env.PORT)
+const PORT = Number.isNaN(parsedPort) ? DEFAULT_PORT : parsedPort;
 
 let wss: WebSocketServer;
 let httpServer: http.Server;
-let intervalId: ReturnType<typeof setInterval>;
 
 try {
-  httpServer = http.createServer(async (req, res) => {
-    if (req.url === HEALTH_PATH) {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ status: "ok", port: PORT }));
-      return;
-    }
-
-    if (req.url === SNAPSHOT_PATH && req.method === "GET") {
-      try {
-        const payload = await getDashboardPayload();
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(payload));
-        return;
-      } catch (error) {
-        logger.error("Failed to get snapshot", { error });
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Failed to get snapshot" }));
-        return;
-      }
-    }
-
-    res.writeHead(404, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ message: "Not found" }));
-  });
+  httpServer = http.createServer(createRequestHandler(PORT));
 
   wss = new WebSocketServer({ server: httpServer });
 
@@ -54,118 +32,34 @@ try {
   });
 
   let currentData: DashboardPayload | null = null;
-
-  const createMessage = (type: MessageType, data: DashboardPayload) => {
-    const payload = webSocketMessageSchema.parse({ type, data });
-    return JSON.stringify(payload);
-  };
-
-  const sendMessage = (
-    ws: WebSocket,
-    type: MessageType,
-    data: DashboardPayload,
-  ) => {
-    try {
-      ws.send(createMessage(type, data));
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown sendMessage error";
-      logger.error(`Failed to send ${type} message: ${message}`);
-    }
-  };
-
-  const broadcastMessage = (message: string) => {
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
-  };
-
-  wss.on("connection", async (ws: WebSocket) => {
-    logger.info(`New client connected (Total: ${wss.clients.size})`);
-
-    try {
-      if (!currentData) {
-        currentData = await getDashboardPayload();
-      }
-      sendMessage(ws, "init", currentData);
-      logger.info("Initial data sent");
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown initial send error";
-      logger.error(`Failed to send initial data: ${message}`);
-      ws.close();
-      return;
-    }
-
-    ws.on("message", (message) => {
-      logger.info(`Message received: ${message}`);
-    });
-
-    ws.on("close", () => {
-      logger.info(`Client disconnected (Remaining: ${wss.clients.size})`);
-    });
+  const { handleConnection } = createSimulationLoop({
+    wss,
+    createMessage: createDashboardMessage,
+    getCurrentData: () => currentData,
+    setCurrentData: (nextData) => {
+      currentData = nextData;
+    },
   });
 
-  logger.info("Starting update interval");
-
-  intervalId = setInterval(async () => {
-    try {
-      await simulateDataChanges();
-      currentData = await getDashboardPayload();
-      const updateMessage = createMessage("update", currentData);
-
-      logger.debug(
-        `[Update] GeneratedAt: ${currentData.generatedAt}, Open: ${currentData.snapshot.openCount}, Critical: ${currentData.snapshot.criticalCount}`,
-      );
-
-      broadcastMessage(updateMessage);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown interval error";
-      logger.error(`Interval error: ${message}`);
-    }
-  }, 5000);
-
-  logger.info("Update interval started");
+  wss.on("connection", handleConnection);
 } catch (error) {
   logger.error("Critical server startup error", { error });
 }
 
 const shutdown = () => {
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
-
   if (wss) {
+    // close all WebSocket connections before shutting down the server
     wss.clients.forEach((client) => {
       client.terminate();
     });
 
     wss.close(() => {
-      if (httpServer) {
-        httpServer.close(() => {
-          logger.info("Server stopped");
-          process.exit(0);
-        });
-      } else {
+      httpServer.close(() => {
         logger.info("Server stopped");
         process.exit(0);
-      }
+      });
     });
-    return;
   }
-
-  if (httpServer) {
-    httpServer.close(() => {
-      logger.info("Server stopped");
-      process.exit(0);
-    });
-    return;
-  }
-
-  process.exit(0);
 };
 
 process.on("SIGINT", shutdown);

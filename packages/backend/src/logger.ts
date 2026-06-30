@@ -1,6 +1,15 @@
 import { createLogger, format, transports } from "winston";
 
-const isDev = process.env.NODE_ENV === "development";
+const allowedLevels = ["error", "warn", "info", "debug"] as const;
+type LogLevel = (typeof allowedLevels)[number];
+
+const isValidLogLevel = (level: string): level is LogLevel =>
+  allowedLevels.includes(level as LogLevel);
+
+const configuredLevel = (process.env.LOG_LEVEL ?? "error").toLowerCase();
+const level: LogLevel = isValidLogLevel(configuredLevel)
+  ? configuredLevel
+  : "error";
 
 const levelIcon: Record<string, string> = {
   info: "🟢",
@@ -10,8 +19,7 @@ const levelIcon: Record<string, string> = {
 };
 
 export const logger = createLogger({
-  level: "debug",
-  silent: !isDev,
+  level,
   format: format.combine(
     format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     format.errors({ stack: true }),
