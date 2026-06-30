@@ -6,9 +6,8 @@
   "scripts": {
     "dev": "dotenv -e .env -- tsx watch src/server.ts",
     "prebuild": "npm run build --prefix ../shared",
-    "build": "tsc -p .",
-    "build:render": "npm run build",
-    "start": "NODE_ENV=production node dist/server.js",
+    "build": "tsup && tsc --noEmit",
+    "start": "node dist/server.js",
     "seed": "dotenv -e .env -- tsx scripts/seed.ts"
   },
   "keywords": [],
@@ -31,6 +30,7 @@
     "@types/uuid": "10.0.0",
     "@types/ws": "8.5.5",
     "dotenv-cli": "11.0.0",
+    "tsup": "^8.5.1",
     "tsx": "4.22.4",
     "typescript": "6.0.2"
   }
