@@ -21,7 +21,6 @@ type UseDashboardSocketTransportResult = {
   data: DashboardPayload | null;
   isInitialDataTimedOut: boolean;
   lastErrorReason: LastErrorReason;
-  nextRetryInSeconds: number | null;
   isRetryCooldown: boolean;
   retryNow: () => void;
 };
@@ -35,9 +34,6 @@ export const useDashboardSocketTransport = (
   const [isInitialDataTimedOut, setIsInitialDataTimedOut] = useState(false);
   const [reconnectNonce, setReconnectNonce] = useState(0);
   const [isRetryCooldown, setIsRetryCooldown] = useState(false);
-  const [nextRetryInSeconds, setNextRetryInSeconds] = useState<number | null>(
-    null,
-  );
   const [lastErrorReason, setLastErrorReason] = useState<LastErrorReason>(null);
 
   const socketStateRef = useRef<DashboardSocketState>(
@@ -77,7 +73,6 @@ export const useDashboardSocketTransport = (
         state,
         connect,
         setConnectionStatus,
-        setNextRetryInSeconds,
       });
     };
 
@@ -147,7 +142,7 @@ export const useDashboardSocketTransport = (
 
     const connect = () => {
       clearReconnectTimeout(state);
-      resetRetryState(state, setNextRetryInSeconds);
+      resetRetryState();
       setConnectionStatus(
         state.reconnectAttempt > 0 ? "reconnecting" : "connecting",
       );
@@ -177,7 +172,7 @@ export const useDashboardSocketTransport = (
       state.isUnmounting = true;
       state.shouldReconnect = false;
       clearReconnectTimeout(state);
-      resetRetryState(state, setNextRetryInSeconds);
+      resetRetryState();
       clearFirstPayloadTimeout(state);
 
       if (state.retryCooldownTimeoutId) {
@@ -206,7 +201,6 @@ export const useDashboardSocketTransport = (
     data,
     isInitialDataTimedOut,
     lastErrorReason,
-    nextRetryInSeconds,
     isRetryCooldown,
     retryNow,
   };

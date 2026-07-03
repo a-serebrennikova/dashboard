@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.incidents-chart .recharts-wrapper:focus,
+.incidents-chart .recharts-wrapper:focus-visible,
+.incidents-chart .recharts-surface:focus,
+.incidents-chart .recharts-surface:focus-visible {
+  outline: none;
+}

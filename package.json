@@ -13,9 +13,26 @@
     "build:vercel": "npm run build:shared && npm run build:frontend",
     "build:render": "npm run build:shared && npm run build:backend",
     "dev": "concurrently \"npm -w packages/backend run dev\" \"npm -w packages/frontend run dev\"",
-    "lint": "npm -w packages/frontend run lint"
+    "lint": "eslint packages",
+    "lint:fix": "eslint packages --fix",
+    "lint:frontend": "eslint packages/frontend",
+    "lint:backend": "eslint packages/backend",
+    "lint:shared": "eslint packages/shared",
+    "lint:staged": "lint-staged",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "packages/**/*.{ts,tsx}": "eslint --max-warnings=0"
   },
   "devDependencies": {
-    "concurrently": "9.2.3"
+    "@eslint/js": "10.0.1",
+    "concurrently": "9.2.3",
+    "eslint": "10.3.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.2",
+    "globals": "17.6.0",
+    "husky": "9.1.7",
+    "lint-staged": "16.2.6",
+    "typescript-eslint": "8.59.2"
   }
 }

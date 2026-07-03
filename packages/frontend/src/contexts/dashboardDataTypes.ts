@@ -15,9 +15,7 @@ export type DashboardDataStateContextValue = {
 };
 
 export type DashboardConnectionContextValue = {
-  isConnected: boolean;
   connectionStatus: ConnectionStatus;
-  nextRetryInSeconds: number | null;
 };
 
 export type DashboardActionsContextValue = {

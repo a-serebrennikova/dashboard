@@ -2,42 +2,46 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import type { ConnectionStatus } from "../../../types/dashboard";
 import { STATUS_DESCRIPTIONS, STATUS_MAP } from "../utils/statusBadgeConsts";
 
+const STATUS_INDICATOR_CLASSES: Record<ConnectionStatus, string> = {
+  online: "bg-green-500",
+  connecting: "bg-amber-500",
+  reconnecting: "bg-yellow-500",
+  offline: "bg-red-500",
+};
+
 interface StatusBadgeProps {
   connectionStatus?: ConnectionStatus;
-  isConnected?: boolean;
-  retryInSeconds?: number | null;
-  isRetryCooldown?: boolean;
-  onRetry?: () => void;
 }
 
-export function StatusBadge({
-  connectionStatus,
-  isConnected,
-  retryInSeconds,
-  isRetryCooldown,
-  onRetry,
-}: StatusBadgeProps) {
-  const resolvedStatus: ConnectionStatus =
-    connectionStatus ?? (isConnected ? "online" : "offline");
+export function StatusBadge({ connectionStatus }: StatusBadgeProps) {
+  const resolvedStatus: ConnectionStatus = connectionStatus ?? "offline";
   const status = STATUS_MAP[resolvedStatus];
-  const countdownText =
-    resolvedStatus === "reconnecting" && typeof retryInSeconds === "number"
-      ? ` (${retryInSeconds}s)`
-      : "";
-  const canRetry =
-    onRetry &&
-    (resolvedStatus === "reconnecting" || resolvedStatus === "offline");
+  const statusText = status.label.replace(/^\S+\s+/, "");
+  const isReconnecting = resolvedStatus === "reconnecting";
+
+  const srStatusText = isReconnecting ? "Reconnecting in progress" : statusText;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center">
       <Tooltip.Provider delayDuration={120}>
         <Tooltip.Root>
           <Tooltip.Trigger asChild>
-            <span
-              className={`px-4 py-1.5 rounded-full border ${status.classes}`}
+            <button
+              type="button"
+              aria-label={`Connection status: ${srStatusText}`}
+              className={`inline-flex items-center gap-2 rounded-full border px-2 py-1.5 sm:px-4 ${status.classes}`}
             >
-              {`${status.label}${countdownText}`}
-            </span>
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${STATUS_INDICATOR_CLASSES[resolvedStatus]} ${
+                  isReconnecting ? "animate-pulse" : ""
+                }`}
+                aria-hidden="true"
+              />
+              <span className="hidden sm:inline">
+                <span>{statusText}</span>
+              </span>
+              <span className="sr-only">{srStatusText}</span>
+            </button>
           </Tooltip.Trigger>
           <Tooltip.Portal>
             <Tooltip.Content
@@ -51,16 +55,6 @@ export function StatusBadge({
           </Tooltip.Portal>
         </Tooltip.Root>
       </Tooltip.Provider>
-      {canRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          disabled={isRetryCooldown}
-          className="px-3 py-1.5 text-sm rounded-md border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          Retry now
-        </button>
-      )}
     </div>
   );
 }
