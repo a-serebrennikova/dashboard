@@ -64,7 +64,7 @@ export function createSimulationLoop({
 
         const updateMessage = createMessage("update", nextData);
         logger.debug(
-          `[Update] GeneratedAt: ${nextData.generatedAt}, Open: ${nextData.snapshot.openCount}, Critical: ${nextData.snapshot.criticalCount}`,
+          `[Update] GeneratedAt: ${nextData.generatedAt}, Incidents: ${nextData.incidents.length}`,
         );
 
         broadcastMessage(updateMessage);

@@ -1,10 +1,8 @@
 import { StatusBadge } from "../../../modules/connection/ui/StatusBadge";
-import { useDashboardActions } from "../../../contexts/useDashboardActions";
 import { useDashboardConnection } from "../../../contexts/useDashboardConnection";
 
 export const Header = () => {
-  const { connectionStatus, nextRetryInSeconds } = useDashboardConnection();
-  const { retryNow, isRetryCooldown } = useDashboardActions();
+  const { connectionStatus } = useDashboardConnection();
 
   return (
     <div className="mb-6 flex items-center justify-between gap-4">
@@ -16,12 +14,7 @@ export const Header = () => {
           Live Dashboard
         </h1>
       </div>
-      <StatusBadge
-        connectionStatus={connectionStatus}
-        retryInSeconds={nextRetryInSeconds}
-        isRetryCooldown={isRetryCooldown}
-        onRetry={retryNow}
-      />
+      <StatusBadge connectionStatus={connectionStatus} />
     </div>
   );
 };

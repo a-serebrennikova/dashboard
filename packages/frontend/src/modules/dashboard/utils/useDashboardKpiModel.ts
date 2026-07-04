@@ -1,5 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
+import { countActiveIncidents } from "./countActiveIncidents";
+import { toDashboardTimestamp } from "../../../utils/formatDashboardTime";
 
 export type KpiSnapshot = {
   activeServices: number;
@@ -10,7 +12,8 @@ export type DashboardKpiModel = {
   activeServicesCount: number;
   openCount: number;
   criticalCount: number;
-  avgResponseTime: number;
+  warningCount: number;
+  otherCount: number;
   generatedAt: string;
   lastUpdatedAt: string;
   previousKpi: KpiSnapshot | null;
@@ -20,7 +23,8 @@ const EMPTY_MODEL: DashboardKpiModel = {
   activeServicesCount: 0,
   openCount: 0,
   criticalCount: 0,
-  avgResponseTime: 0,
+  warningCount: 0,
+  otherCount: 0,
   generatedAt: "",
   lastUpdatedAt: "",
   previousKpi: null,
@@ -41,11 +45,29 @@ export const useDashboardKpiModel = (
     return data.services.filter((service) => service.isActive).length;
   }, [data]);
 
-  const openCount = data?.snapshot.openCount ?? 0;
-  const criticalCount = data?.snapshot.criticalCount ?? 0;
-  const avgResponseTime = data?.snapshot.avgResponseTime ?? 0;
+  const incidentCounts = useMemo(
+    () => (data ? countActiveIncidents(data.incidents) : null),
+    [data],
+  );
+
+  const openCount = incidentCounts?.openCount ?? 0;
+  const criticalCount = incidentCounts?.criticalCount ?? 0;
+  const warningCount = incidentCounts?.warningCount ?? 0;
+  const otherCount = incidentCounts?.otherCount ?? 0;
   const generatedAt = data?.generatedAt ?? "";
-  const lastUpdatedAt = data?.snapshot.lastUpdatedAt ?? "";
+  const lastUpdatedAt = useMemo(() => {
+    if (!data || data.incidents.length === 0) {
+      return generatedAt;
+    }
+
+    return data.incidents.reduce((latest, incident) => {
+      return (toDashboardTimestamp(incident.updatedAt) ??
+        Number.NEGATIVE_INFINITY) >
+        (toDashboardTimestamp(latest) ?? Number.NEGATIVE_INFINITY)
+        ? incident.updatedAt
+        : latest;
+    }, data.incidents[0]?.updatedAt ?? generatedAt);
+  }, [data, generatedAt]);
 
   useLayoutEffect(() => {
     if (!data) {
@@ -74,7 +96,8 @@ export const useDashboardKpiModel = (
     activeServicesCount,
     openCount,
     criticalCount,
-    avgResponseTime,
+    warningCount,
+    otherCount,
     generatedAt,
     lastUpdatedAt,
     previousKpi,

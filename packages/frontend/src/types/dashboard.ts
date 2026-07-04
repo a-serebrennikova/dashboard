@@ -17,4 +17,5 @@ export type IncidentsTrendPoint = {
   timestampMs: number;
   total: number;
   critical: number;
+  warning: number;
 };

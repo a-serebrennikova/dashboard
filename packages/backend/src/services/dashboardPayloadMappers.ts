@@ -7,12 +7,64 @@ import type {
   Service,
 } from "@package/dashboard-shared/contracts/dashboard";
 
+const INCIDENT_SEVERITIES: readonly IncidentSeverity[] = [
+  "critical",
+  "warning",
+  "info",
+];
+const INCIDENT_STATUSES: readonly IncidentStatus[] = [
+  "open",
+  "investigating",
+  "resolved",
+];
+const INCIDENT_EVENT_TYPES: readonly IncidentEventType[] = [
+  "created",
+  "updated",
+  "comment",
+  "resolved",
+];
+
+const isIncidentSeverity = (value: string): value is IncidentSeverity =>
+  INCIDENT_SEVERITIES.some((severity) => severity === value);
+
+const isIncidentStatus = (value: string): value is IncidentStatus =>
+  INCIDENT_STATUSES.some((status) => status === value);
+
+const isIncidentEventType = (value: string): value is IncidentEventType =>
+  INCIDENT_EVENT_TYPES.some((type) => type === value);
+
 const toIsoOrNow = (value: unknown): string => {
   if (!value) {
     return new Date().toISOString();
   }
 
-  const parsed = new Date(value as string | number | Date);
+  // SQLite DATETIME often comes as "YYYY-MM-DD HH:mm:ss" without timezone.
+  // Treat such values as UTC to avoid local-time shifts after ISO conversion.
+  if (typeof value === "string") {
+    const hasTimezone = /Z|[+-]\d{2}:?\d{2}$/.test(value);
+    const isSqlDateTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/.test(
+      value,
+    );
+
+    if (isSqlDateTime && !hasTimezone) {
+      const parsedUtc = new Date(value.replace(" ", "T") + "Z");
+      if (!Number.isNaN(parsedUtc.getTime())) {
+        return parsedUtc.toISOString();
+      }
+    }
+  }
+
+  if (
+    !(
+      typeof value === "string" ||
+      typeof value === "number" ||
+      value instanceof Date
+    )
+  ) {
+    return new Date().toISOString();
+  }
+
+  const parsed = new Date(value);
   return Number.isNaN(parsed.getTime())
     ? new Date().toISOString()
     : parsed.toISOString();
@@ -51,8 +103,8 @@ export const mapIncident = (incident: {
   serviceName: incident.serviceName,
   title: incident.title,
   description: incident.description,
-  severity: incident.severity as IncidentSeverity,
-  status: incident.status as IncidentStatus,
+  severity: isIncidentSeverity(incident.severity) ? incident.severity : "info",
+  status: isIncidentStatus(incident.status) ? incident.status : "open",
   createdAt: toIsoOrNow(incident.createdAt),
   updatedAt: toIsoOrNow(incident.updatedAt),
   resolvedAt: incident.resolvedAt ? toIsoOrNow(incident.resolvedAt) : null,
@@ -72,8 +124,11 @@ export const mapEvent = (event: {
   incidentId: event.incidentId,
   incidentTitle: event.incidentTitle,
   serviceName: event.serviceName,
-  type: event.type as IncidentEventType,
+  type: isIncidentEventType(event.type) ? event.type : "updated",
   message: event.message,
-  severity: event.severity as IncidentSeverity | null,
+  severity:
+    event.severity && isIncidentSeverity(event.severity)
+      ? event.severity
+      : null,
   createdAt: toIsoOrNow(event.createdAt),
 });

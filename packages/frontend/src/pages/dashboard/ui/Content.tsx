@@ -2,11 +2,12 @@ import { useDashboardActions } from "../../../contexts/useDashboardActions";
 import { useDashboardDataState } from "../../../contexts/useDashboardDataState";
 import { useDashboardKpiModel } from "../../../modules/dashboard/utils/useDashboardKpiModel";
 import { Dashboard } from "../../../modules/dashboard/ui/Dashboard";
-import { EmptyState } from "../../../shared/ui/states/EmptyState";
-import { ErrorState } from "../../../shared/ui/states/ErrorState";
+import { EmptyState } from "./states/EmptyState";
+import { ErrorState } from "./states/ErrorState";
+import { LoadingState } from "./states/LoadingState";
 
 export const Content = () => {
-  const { retryNow } = useDashboardActions();
+  const { retryNow, isRetryCooldown } = useDashboardActions();
   const {
     data,
     incidentsTrend,
@@ -23,10 +24,9 @@ export const Content = () => {
 
   if (isLoading) {
     return (
-      <EmptyState
-        title="Загружаем snapshot"
-        message="Подключаемся к backend и ждём первый пакет данных. После этого появится dashboard."
-        icon="⏳"
+      <LoadingState
+        title="Loading dashboard"
+        message="Connecting to the backend and waiting for the first data packet..."
       />
     );
   }
@@ -36,17 +36,18 @@ export const Content = () => {
       <ErrorState
         title={
           lastErrorReason === "ws_open_failed"
-            ? "Сервер недоступен"
-            : "Соединение разорвано"
+            ? "Server unavailable"
+            : "Connection lost"
         }
         message={
           lastErrorReason === "ws_open_failed"
-            ? "Не удалось открыть WebSocket-соединение. Проверь, что backend запущен и адрес указан верно."
-            : "Backend перестал отвечать после нескольких попыток восстановления. Попробуй переподключиться."
+            ? "Failed to open a WebSocket connection. Check that the backend is running and the URL is correct."
+            : "The backend stopped responding after several recovery attempts. Please reconnect."
         }
         icon={lastErrorReason === "ws_open_failed" ? "🚫" : "🔌"}
-        actionLabel="Попробовать ещё раз"
+        actionLabel="Try again"
         onAction={retryNow}
+        isActionLoading={isRetryCooldown}
       />
     );
   }
@@ -54,10 +55,10 @@ export const Content = () => {
   if (isFirstPayloadTimeout) {
     return (
       <EmptyState
-        title="Данные пока не пришли"
-        message="Соединение установлено, но первый пакет данных задерживается. Проверь backend и попробуй переподключиться."
+        title="Data has not arrived yet"
+        message="Connection is established, but the first data packet is delayed. Check the backend and try reconnecting."
         icon="⏱️"
-        actionLabel="Переподключиться"
+        actionLabel="Reconnect"
         onAction={retryNow}
       />
     );
@@ -66,14 +67,21 @@ export const Content = () => {
   if (!data) {
     return (
       <EmptyState
-        title="Пока нет данных"
-        message="Связь с backend есть, но snapshot ещё не пришёл. Это состояние должно быть кратким."
+        title="No data yet"
+        message="Connection to the backend is active, but the snapshot has not arrived yet. This state should be brief."
         icon="🫥"
-        actionLabel="Попробовать ещё раз"
+        actionLabel="Try again"
         onAction={retryNow}
       />
     );
   }
 
-  return <Dashboard incidentsTrend={incidentsTrend} {...kpiModel} />;
+  return (
+    <Dashboard
+      incidentsTrend={incidentsTrend}
+      incidents={data.incidents}
+      recentEvents={data.recentEvents}
+      {...kpiModel}
+    />
+  );
 };

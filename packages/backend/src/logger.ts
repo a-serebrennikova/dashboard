@@ -4,7 +4,7 @@ const allowedLevels = ["error", "warn", "info", "debug"] as const;
 type LogLevel = (typeof allowedLevels)[number];
 
 const isValidLogLevel = (level: string): level is LogLevel =>
-  allowedLevels.includes(level as LogLevel);
+  allowedLevels.some((allowedLevel) => allowedLevel === level);
 
 const configuredLevel = (process.env.LOG_LEVEL ?? "error").toLowerCase();
 const level: LogLevel = isValidLogLevel(configuredLevel)

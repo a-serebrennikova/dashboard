@@ -10,13 +10,11 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const {
-    isConnected,
     connectionStatus,
     data,
     incidentsTrend,
     isInitialDataTimedOut,
     lastErrorReason,
-    nextRetryInSeconds,
     isRetryCooldown,
     retryNow,
   } = useDashboardData();
@@ -40,11 +38,9 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
 
   const connectionValue = useMemo(
     () => ({
-      isConnected,
       connectionStatus,
-      nextRetryInSeconds,
     }),
-    [isConnected, connectionStatus, nextRetryInSeconds],
+    [connectionStatus],
   );
 
   const actionsValue = useMemo(
