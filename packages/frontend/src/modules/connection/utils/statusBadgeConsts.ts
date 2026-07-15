@@ -6,19 +6,19 @@ export const STATUS_MAP: Record<
 > = {
   online: {
     label: "🟢 Online",
-    classes: "bg-green-100 text-green-600 border-green-200",
+    classes: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30",
   },
   connecting: {
     label: "🟠 Connecting",
-    classes: "bg-amber-100 text-amber-700 border-amber-200",
+    classes: "bg-amber-500/10 text-amber-300 border-amber-500/30",
   },
   reconnecting: {
     label: "🟡 Reconnecting",
-    classes: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    classes: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30",
   },
   offline: {
     label: "🔴 Offline",
-    classes: "bg-red-100 text-red-600 border-red-200",
+    classes: "bg-red-500/10 text-red-300 border-red-500/30",
   },
 };
 

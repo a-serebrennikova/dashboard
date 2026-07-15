@@ -1,5 +1,8 @@
 import { createContext } from "react";
-import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
+import type {
+  DashboardPayload,
+  Service,
+} from "@package/dashboard-shared/contracts/dashboard";
 import type {
   ConnectionStatus,
   IncidentsTrendPoint,
@@ -12,6 +15,7 @@ export type DashboardDataStateContextValue = {
   incidentsTrend: IncidentsTrendPoint[];
   isInitialDataTimedOut: boolean;
   lastErrorReason: LastErrorReason;
+  services: Service[];
 };
 
 export type DashboardConnectionContextValue = {

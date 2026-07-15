@@ -1,10 +1,11 @@
-export const CHART_MODES = ["stackedBar", "stacked", "step"] as const;
+export const CHART_MODES = ["step", "stackedBar", "stacked"] as const;
 
 export type ChartMode = (typeof CHART_MODES)[number];
 
 export type IncidentsTrendInputPoint = {
   second: string;
   timestampMs: number;
+  x: number;
   total: number;
   critical: number;
   warning: number;

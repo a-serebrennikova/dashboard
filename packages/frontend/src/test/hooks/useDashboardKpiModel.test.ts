@@ -1,14 +1,26 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { useDashboardKpiModel } from "../../modules/dashboard/utils/useDashboardKpiModel";
+import { useDashboardKpiModel } from "../../modules/dashboard/model/useDashboardKpiModel";
 import { makeDashboardPayload } from "../utils/dashboardPayload";
 import { firstIncidents, secondIncidents } from "../data/incidents";
+import type { Service } from "@package/dashboard-shared/contracts/dashboard";
 
 type DashboardPayloadLike = ReturnType<typeof makeDashboardPayload>;
 
+const services: Service[] = [
+  {
+    id: "svc-1",
+    name: "Payments API",
+    team: "Core",
+    isActive: true,
+    createdAt: "2026-06-27T10:00:00.000Z",
+    updatedAt: "2026-06-27T10:00:00.000Z",
+  },
+];
+
 describe("useDashboardKpiModel", () => {
   it("returns an empty model when data is null", () => {
-    const { result } = renderHook(() => useDashboardKpiModel(null));
+    const { result } = renderHook(() => useDashboardKpiModel(null, services));
 
     expect(result.current).toMatchObject({
       activeServicesCount: 0,
@@ -33,7 +45,7 @@ describe("useDashboardKpiModel", () => {
 
     const { result, rerender } = renderHook(
       ({ payload }: { payload: DashboardPayloadLike | null }) =>
-        useDashboardKpiModel(payload),
+        useDashboardKpiModel(payload, services),
       {
         initialProps: {
           payload: firstPayload as DashboardPayloadLike | null,
@@ -69,7 +81,7 @@ describe("useDashboardKpiModel", () => {
 
     const { result, rerender } = renderHook(
       ({ payload }: { payload: DashboardPayloadLike | null }) =>
-        useDashboardKpiModel(payload),
+        useDashboardKpiModel(payload, services),
       {
         initialProps: {
           payload: firstPayload as DashboardPayloadLike | null,

@@ -6,6 +6,7 @@ import {
   HEALTH_PATH,
   SNAPSHOT_PATH,
 } from "./server/httpRoutes";
+import { isOriginAllowed } from "./server/cors";
 import {
   createDashboardMessage,
   createSimulationLoop,
@@ -13,7 +14,7 @@ import {
 import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
 
 const DEFAULT_PORT = 8080;
-const parsedPort = Number(process.env.PORT)
+const parsedPort = Number(process.env.PORT);
 const PORT = Number.isNaN(parsedPort) ? DEFAULT_PORT : parsedPort;
 
 let wss: WebSocketServer;
@@ -22,7 +23,22 @@ let httpServer: http.Server;
 try {
   httpServer = http.createServer(createRequestHandler(PORT));
 
-  wss = new WebSocketServer({ server: httpServer });
+  wss = new WebSocketServer({ noServer: true });
+
+  httpServer.on("upgrade", (request, socket, head) => {
+    if (!isOriginAllowed(request.headers.origin)) {
+      logger.warn("Rejected websocket upgrade from disallowed origin", {
+        origin: request.headers.origin,
+      });
+      socket.write("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n");
+      socket.destroy();
+      return;
+    }
+
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit("connection", ws, request);
+    });
+  });
 
   httpServer.listen(PORT, () => {
     logger.info(`HTTP/WebSocket server started on port ${PORT}`);

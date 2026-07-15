@@ -76,7 +76,13 @@ export const useDashboardSocketTransport = (
       });
     };
 
+    const isActiveSocket = (ws: WebSocket) => state.ws === ws;
+
     const handleOpen = (ws: WebSocket) => {
+      if (!isActiveSocket(ws)) {
+        return;
+      }
+
       if (state.isUnmounting) {
         ws.close();
         return;
@@ -96,7 +102,11 @@ export const useDashboardSocketTransport = (
       }, FIRST_PAYLOAD_TIMEOUT_MS);
     };
 
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = (ws: WebSocket, event: MessageEvent) => {
+      if (!isActiveSocket(ws)) {
+        return;
+      }
+
       if (state.isUnmounting) {
         return;
       }
@@ -118,7 +128,11 @@ export const useDashboardSocketTransport = (
       }
     };
 
-    const handleClose = () => {
+    const handleClose = (ws: WebSocket) => {
+      if (!isActiveSocket(ws)) {
+        return;
+      }
+
       if (state.isUnmounting) {
         return;
       }
@@ -132,7 +146,11 @@ export const useDashboardSocketTransport = (
       requestReconnect(connect);
     };
 
-    const handleError = (error: Event) => {
+    const handleError = (ws: WebSocket, error: Event) => {
+      if (!isActiveSocket(ws)) {
+        return;
+      }
+
       if (state.isUnmounting) {
         return;
       }
@@ -161,9 +179,9 @@ export const useDashboardSocketTransport = (
 
       state.ws = ws;
       ws.onopen = () => handleOpen(ws);
-      ws.onmessage = handleMessage;
-      ws.onclose = handleClose;
-      ws.onerror = handleError;
+      ws.onmessage = (event) => handleMessage(ws, event);
+      ws.onclose = () => handleClose(ws);
+      ws.onerror = (error) => handleError(ws, error);
     };
 
     connect();

@@ -48,11 +48,23 @@ export const incidentEventSchema = z.object({
   createdAt: z.string(),
 });
 
+export const incidentsTrendPointSchema = z.object({
+  second: z.string(),
+  timestampMs: z.number(),
+  total: z.number(),
+  critical: z.number(),
+  warning: z.number(),
+});
+
 export const dashboardPayloadSchema = z.object({
   generatedAt: z.string(),
-  services: z.array(serviceSchema),
   incidents: z.array(incidentSchema),
   recentEvents: z.array(incidentEventSchema),
+  trendHistory: z.array(incidentsTrendPointSchema).optional(),
+});
+
+export const dashboardInitPayloadSchema = dashboardPayloadSchema.extend({
+  trendHistory: z.array(incidentsTrendPointSchema),
 });
 
 export type Service = z.infer<typeof serviceSchema>;
@@ -61,4 +73,6 @@ export type IncidentStatus = z.infer<typeof incidentStatusSchema>;
 export type IncidentEventType = z.infer<typeof incidentEventTypeSchema>;
 export type Incident = z.infer<typeof incidentSchema>;
 export type IncidentEvent = z.infer<typeof incidentEventSchema>;
+export type IncidentsTrendPoint = z.infer<typeof incidentsTrendPointSchema>;
 export type DashboardPayload = z.infer<typeof dashboardPayloadSchema>;
+export type DashboardInitPayload = z.infer<typeof dashboardInitPayloadSchema>;
