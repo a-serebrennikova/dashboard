@@ -7,8 +7,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatDashboardTime } from "../../../../utils/formatDashboardTime";
 import { sortTooltipItems, type IncidentsChartPoint } from "./consts";
+import { SEVERITY_COLORS } from "../../model/severityColors";
 
 type StepLineIncidentsChartProps = {
   data: IncidentsChartPoint[];
@@ -21,16 +21,15 @@ export const StepLineIncidentsChart: FC<StepLineIncidentsChartProps> = ({
     <LineChart data={data} margin={{ top: 8, right: 12, left: 10, bottom: 0 }}>
       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
       <XAxis
-        dataKey="timestampMs"
+        dataKey="x"
         type="number"
-        domain={["dataMin", "dataMax"]}
+        domain={[0, 29]}
         minTickGap={36}
         interval="preserveStartEnd"
-        tickFormatter={(value) => formatDashboardTime(Number(value))}
         stroke="#94a3b8"
         tickLine={{ stroke: "#475569" }}
+        tick={false}
         axisLine={false}
-        tick={{ fill: "#94a3b8", fontSize: 11 }}
       />
       <YAxis
         allowDecimals={false}
@@ -54,9 +53,9 @@ export const StepLineIncidentsChart: FC<StepLineIncidentsChartProps> = ({
           fill: "rgba(148, 163, 184, 0.08)",
         }}
         itemSorter={sortTooltipItems}
-        labelFormatter={(label) => {
-          return `Time: ${formatDashboardTime(Number(label))}`;
-        }}
+        labelFormatter={(_, payload) =>
+          `Time: ${payload?.[0]?.payload.second ?? ""}`
+        }
         contentStyle={{
           background: "#0f172a",
           border: "1px solid #334155",
@@ -68,7 +67,7 @@ export const StepLineIncidentsChart: FC<StepLineIncidentsChartProps> = ({
         type="stepBefore"
         dataKey="total"
         name="Open"
-        stroke="#f59e0b"
+        stroke={SEVERITY_COLORS.other}
         strokeWidth={2}
         dot={false}
       />
@@ -76,7 +75,7 @@ export const StepLineIncidentsChart: FC<StepLineIncidentsChartProps> = ({
         type="stepBefore"
         dataKey="warning"
         name="Warning"
-        stroke="#fde047"
+        stroke={SEVERITY_COLORS.warning}
         strokeWidth={2}
         dot={false}
       />
@@ -84,7 +83,7 @@ export const StepLineIncidentsChart: FC<StepLineIncidentsChartProps> = ({
         type="stepBefore"
         dataKey="critical"
         name="Critical"
-        stroke="#ef4444"
+        stroke={SEVERITY_COLORS.critical}
         strokeWidth={2}
         dot={false}
       />

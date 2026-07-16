@@ -1,10 +1,10 @@
 import { Suspense, lazy, type FC } from "react";
 import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
 import type { IncidentsTrendPoint } from "../../../types/dashboard";
-import type { KpiSnapshot } from "../utils/useDashboardKpiModel";
-import { IndicatorCard } from "./IndicatorCard";
 import { IncidentsTable } from "./IncidentsTable";
 import { EventList } from "./EventList";
+import { SeverityBreakdownCard } from "./cards/SeverityBreakdownCard";
+import { RecentActivityCard } from "./cards/RecentActivityCard";
 
 const IncidentsAreaChart = lazy(() =>
   import("./charts/IncidentsChart").then((module) => ({
@@ -16,73 +16,65 @@ interface DashboardProps {
   incidentsTrend: IncidentsTrendPoint[];
   incidents: DashboardPayload["incidents"];
   recentEvents: DashboardPayload["recentEvents"];
-  activeServicesCount: number;
-  openCount: number;
   criticalCount: number;
   warningCount: number;
   otherCount: number;
-  generatedAt: string;
-  lastUpdatedAt: string;
-  previousKpi: KpiSnapshot | null;
 }
 
 export const Dashboard: FC<DashboardProps> = ({
   incidentsTrend,
   incidents,
   recentEvents,
-  openCount,
   criticalCount,
   warningCount,
   otherCount,
-  lastUpdatedAt,
-  previousKpi,
 }) => {
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4">
-        <IndicatorCard
-          title="🚨 Open incidents"
-          value={openCount}
-          variant="highlight"
-          breakdown={[
-            {
-              label: "Critical",
-              value: criticalCount,
-              className: "border-red-500/30 bg-red-500/10 text-red-300",
-            },
-            {
-              label: "Warning",
-              value: warningCount,
-              className:
-                "border-yellow-500/30 bg-yellow-500/10 text-yellow-300",
-            },
-            {
-              label: "Other",
-              value: otherCount,
-              className:
-                "border-orange-500/30 bg-orange-500/10 text-orange-300",
-            },
-          ]}
-          prevValue={previousKpi?.openIncidents}
-          colorClass="text-slate-100"
-          time={lastUpdatedAt}
+      {/* Charts and Insights - 2 Column Layout */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Trend Chart - 2 columns */}
+        <div className="lg:col-span-2">
+          <Suspense
+            fallback={
+              <section className="bg-slate-900 p-5 rounded-lg border border-slate-700">
+                <div className="h-[320px] flex items-center justify-center text-sm text-slate-500">
+                  Loading incidents chart...
+                </div>
+              </section>
+            }
+          >
+            <IncidentsAreaChart trend={incidentsTrend} />
+          </Suspense>
+        </div>
+
+        <SeverityBreakdownCard
+          criticalCount={criticalCount}
+          warningCount={warningCount}
+          otherCount={otherCount}
         />
       </div>
 
-      <Suspense
-        fallback={
-          <section className="bg-slate-900 p-5 rounded-lg border border-slate-700">
-            <div className="h-[320px] flex items-center justify-center text-sm text-slate-500">
-              Loading incidents chart...
-            </div>
-          </section>
-        }
-      >
-        <IncidentsAreaChart trend={incidentsTrend} />
-      </Suspense>
+      {/* System Health & Quick Actions & Recent Activity - 3 Column */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* TODO implement */}
+        {/* <SystemHealthCard
+          activeServicesCount={activeServicesCount}
+          openCount={openCount}
+          resolvedTodayCount={resolvedTodayCount}
+        /> */}
+        {/* <QuickActionsCard /> */}
 
-      <IncidentsTable incidents={incidents} />
-      <EventList events={recentEvents} />
+        <div className="w-full lg:col-span-3">
+          <RecentActivityCard events={recentEvents} />
+        </div>
+      </div>
+
+      {/* Tables - Full Width */}
+      <div className="space-y-6">
+        <IncidentsTable incidents={incidents} />
+        <EventList events={recentEvents} />
+      </div>
     </div>
   );
 };

@@ -1,9 +1,16 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { logger } from "../logger";
-import { getDashboardPayload } from "../services/dashboardService";
+import {
+  getDashboardPayload,
+  getDashboardUpdatePayload,
+} from "../services/dashboardService";
 import { simulateDataChanges } from "../services/dataSimulator";
 import { webSocketMessageSchema } from "@package/dashboard-shared/contracts/ws";
-import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
+import { buildInitPayload } from "./simulationTrendHistory";
+import type {
+  DashboardInitPayload,
+  DashboardPayload,
+} from "@package/dashboard-shared/contracts/dashboard";
 import type { MessageType } from "@package/dashboard-shared/contracts/ws";
 
 type CreateMessage = (type: MessageType, data: DashboardPayload) => string;
@@ -15,13 +22,23 @@ type SimulationLoopParams = {
   setCurrentData: (data: DashboardPayload) => void;
 };
 
+const MIN_SIMULATION_DELAY_MS = 1200;
+const MAX_SIMULATION_DELAY_MS = 5000;
+
 export function createSimulationLoop({
   wss,
   createMessage,
   getCurrentData,
   setCurrentData,
 }: SimulationLoopParams) {
-  let intervalId: ReturnType<typeof setInterval> | undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const getNextDelayMs = () => {
+    const delayRange = MAX_SIMULATION_DELAY_MS - MIN_SIMULATION_DELAY_MS;
+    return (
+      MIN_SIMULATION_DELAY_MS + Math.floor(Math.random() * (delayRange + 1))
+    );
+  };
 
   const broadcastMessage = (message: string) => {
     wss.clients.forEach((client) => {
@@ -32,50 +49,68 @@ export function createSimulationLoop({
   };
 
   const stop = () => {
-    if (intervalId === undefined) {
+    if (timeoutId === undefined) {
       return;
     }
 
     // Freeze updates when nobody is connected.
-    clearInterval(intervalId);
-    intervalId = undefined;
+    clearTimeout(timeoutId);
+    timeoutId = undefined;
     logger.info(
-      "Update interval paused because there are no connected clients",
+      "Simulation loop paused because there are no connected clients",
     );
   };
 
-  const start = () => {
-    if (intervalId !== undefined || wss.clients.size === 0) {
+  const runSimulationTick = async () => {
+    if (wss.clients.size === 0) {
+      stop();
       return;
     }
 
-    logger.info("Starting update interval");
+    try {
+      await simulateDataChanges();
+      const currentData = getCurrentData();
+      const nextData = await getDashboardUpdatePayload();
+      setCurrentData(currentData ? { ...currentData, ...nextData } : nextData);
 
-    intervalId = setInterval(async () => {
-      try {
-        if (wss.clients.size === 0) {
-          stop();
-          return;
-        }
+      const updateMessage = createMessage("update", nextData);
+      logger.debug(
+        `[Update] GeneratedAt: ${nextData.generatedAt}, Incidents: ${nextData.incidents.length}`,
+      );
 
-        await simulateDataChanges();
-        const nextData = await getDashboardPayload();
-        setCurrentData(nextData);
+      // Push update right after data mutation, without waiting for a fixed cadence.
+      broadcastMessage(updateMessage);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown simulation error";
+      logger.error(`Simulation tick error: ${message}`);
+    } finally {
+      scheduleNextTick();
+    }
+  };
 
-        const updateMessage = createMessage("update", nextData);
-        logger.debug(
-          `[Update] GeneratedAt: ${nextData.generatedAt}, Incidents: ${nextData.incidents.length}`,
-        );
+  const scheduleNextTick = () => {
+    if (timeoutId !== undefined || wss.clients.size === 0) {
+      return;
+    }
 
-        broadcastMessage(updateMessage);
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : "Unknown interval error";
-        logger.error(`Interval error: ${message}`);
-      }
-    }, 5000);
+    const delayMs = getNextDelayMs();
+    logger.debug(`Next simulation tick scheduled in ${delayMs}ms`);
+    timeoutId = setTimeout(() => {
+      // This timer drives the simulated data update flow for the MVP.
+      timeoutId = undefined;
+      void runSimulationTick();
+    }, delayMs);
+  };
 
-    logger.info("Update interval started");
+  const start = () => {
+    if (timeoutId !== undefined || wss.clients.size === 0) {
+      return;
+    }
+
+    logger.info("Starting simulation loop");
+    scheduleNextTick();
+    logger.info("Simulation loop started");
   };
 
   const handleConnection = async (ws: WebSocket) => {
@@ -89,7 +124,7 @@ export function createSimulationLoop({
         setCurrentData(currentData);
       }
 
-      ws.send(createMessage("init", currentData));
+      ws.send(createMessage("init", await buildInitPayload(currentData)));
       logger.info("Initial data sent");
     } catch (error) {
       const message =
@@ -119,7 +154,7 @@ export function createSimulationLoop({
 
 export function createDashboardMessage(
   type: MessageType,
-  data: DashboardPayload,
+  data: DashboardPayload | DashboardInitPayload,
 ) {
   const payload = webSocketMessageSchema.parse({ type, data });
   return JSON.stringify(payload);

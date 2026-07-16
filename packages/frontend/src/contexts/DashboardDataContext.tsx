@@ -15,6 +15,7 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
     incidentsTrend,
     isInitialDataTimedOut,
     lastErrorReason,
+    services,
     isRetryCooldown,
     retryNow,
   } = useDashboardData();
@@ -26,6 +27,7 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
       incidentsTrend,
       isInitialDataTimedOut,
       lastErrorReason,
+      services,
     }),
     [
       connectionStatus,
@@ -33,6 +35,7 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
       incidentsTrend,
       isInitialDataTimedOut,
       lastErrorReason,
+      services,
     ],
   );
 

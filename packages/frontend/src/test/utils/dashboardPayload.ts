@@ -7,14 +7,20 @@ export const makeDashboardPayload = (
 
   return {
     generatedAt,
-    services: [
+    trendHistory: [
       {
-        id: "svc-1",
-        name: "Payments API",
-        team: "Core",
-        isActive: true,
-        createdAt: generatedAt,
-        updatedAt: generatedAt,
+        second: "10:00:00 AM",
+        timestampMs: Date.parse("2026-06-27T09:55:00.000Z"),
+        total: 3,
+        critical: 1,
+        warning: 1,
+      },
+      {
+        second: "10:00:30 AM",
+        timestampMs: Date.parse("2026-06-27T09:55:30.000Z"),
+        total: 4,
+        critical: 1,
+        warning: 2,
       },
     ],
     incidents: [

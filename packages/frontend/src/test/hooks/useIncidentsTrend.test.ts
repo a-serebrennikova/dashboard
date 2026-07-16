@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { vi, describe, expect, it } from "vitest";
-import { useIncidentsTrend } from "../../hooks/useIncidentsTrend";
+import { useIncidentsTrend } from "../../hooks/useIncidentsTrend.ts";
 import { makeDashboardPayload } from "../utils/dashboardPayload";
 import {
   createIncidentAt,
@@ -11,7 +11,7 @@ import {
 type DashboardPayloadLike = ReturnType<typeof makeDashboardPayload>;
 
 describe("useIncidentsTrend", () => {
-  it("adds a trend point and replaces it for duplicate timestamps", () => {
+  it("replaces the last trend point for duplicate generatedAt", () => {
     const firstPayload = makeDashboardPayload({
       generatedAt: "2026-06-27T10:00:00.000Z",
       incidents: firstIncidents,
@@ -43,20 +43,15 @@ describe("useIncidentsTrend", () => {
     });
 
     rerender({ payload: updatedSameSecondPayload });
-    expect(result.current).toHaveLength(2);
+    expect(result.current).toHaveLength(1);
     expect(result.current[0]).toMatchObject({
-      total: 4,
-      critical: 1,
-      warning: 2,
-    });
-    expect(result.current[1]).toMatchObject({
       total: 7,
       critical: 2,
       warning: 4,
     });
   });
 
-  it("skips payload when latest incident updatedAt is invalid", () => {
+  it("does not skip payload when generatedAt is valid", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const validPayload = makeDashboardPayload({ incidents: firstIncidents });
@@ -93,11 +88,11 @@ describe("useIncidentsTrend", () => {
     rerender({ payload: invalidPayload });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toMatchObject({
-      total: 4,
-      critical: 1,
-      warning: 2,
+      total: 1,
+      critical: 0,
+      warning: 1,
     });
-    expect(warnSpy).toHaveBeenCalledOnce();
+    expect(warnSpy).not.toHaveBeenCalled();
 
     warnSpy.mockRestore();
   });

@@ -3,7 +3,7 @@ import type { ConnectionStatus } from "../../../types/dashboard";
 import { STATUS_DESCRIPTIONS, STATUS_MAP } from "../utils/statusBadgeConsts";
 
 const STATUS_INDICATOR_CLASSES: Record<ConnectionStatus, string> = {
-  online: "bg-green-500",
+  online: "bg-emerald-400",
   connecting: "bg-amber-500",
   reconnecting: "bg-yellow-500",
   offline: "bg-red-500",
@@ -29,15 +29,15 @@ export function StatusBadge({ connectionStatus }: StatusBadgeProps) {
             <button
               type="button"
               aria-label={`Connection status: ${srStatusText}`}
-              className={`inline-flex items-center gap-2 rounded-full border px-2 py-1.5 sm:px-4 ${status.classes}`}
+              className={`inline-flex items-center gap-2 rounded-full border px-2 py-1.5 transition-colors duration-300 sm:px-4 ${status.classes}`}
             >
               <span
-                className={`h-2.5 w-2.5 rounded-full ${STATUS_INDICATOR_CLASSES[resolvedStatus]} ${
+                className={`h-2.5 w-2.5 rounded-full transition-colors duration-300 ${STATUS_INDICATOR_CLASSES[resolvedStatus]} ${
                   isReconnecting ? "animate-pulse" : ""
                 }`}
                 aria-hidden="true"
               />
-              <span className="hidden sm:inline">
+              <span className="inline text-xs sm:text-sm">
                 <span>{statusText}</span>
               </span>
               <span className="sr-only">{srStatusText}</span>

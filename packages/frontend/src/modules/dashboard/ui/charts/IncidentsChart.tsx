@@ -26,7 +26,7 @@ type IncidentsAreaChartProps = {
 };
 
 export const IncidentsChart: FC<IncidentsAreaChartProps> = ({ trend }) => {
-  const [chartMode, setChartMode] = useState<ChartMode>("stackedBar");
+  const [chartMode, setChartMode] = useState<ChartMode>("step");
   const ActiveChart = CHART_RENDERERS[chartMode];
 
   const chartData = useMemo(

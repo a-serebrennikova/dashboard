@@ -1,5 +1,8 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
+import type {
+  DashboardPayload,
+  Service,
+} from "@package/dashboard-shared/contracts/dashboard";
 import { countActiveIncidents } from "./countActiveIncidents";
 import { toDashboardTimestamp } from "../../../utils/formatDashboardTime";
 
@@ -19,6 +22,11 @@ export type DashboardKpiModel = {
   previousKpi: KpiSnapshot | null;
 };
 
+export type DashboardKpiModelExtended = DashboardKpiModel & {
+  resolvedTodayCount: number;
+  mttrMinutes: number | null;
+};
+
 const EMPTY_MODEL: DashboardKpiModel = {
   activeServicesCount: 0,
   openCount: 0,
@@ -30,9 +38,16 @@ const EMPTY_MODEL: DashboardKpiModel = {
   previousKpi: null,
 };
 
+const EMPTY_EXTENDED_MODEL: DashboardKpiModelExtended = {
+  ...EMPTY_MODEL,
+  resolvedTodayCount: 0,
+  mttrMinutes: null,
+};
+
 export const useDashboardKpiModel = (
   data: DashboardPayload | null,
-): DashboardKpiModel => {
+  services: Service[] | null = null,
+): DashboardKpiModelExtended => {
   const [previousKpi, setPreviousKpi] = useState<KpiSnapshot | null>(null);
   const lastKpiRef = useRef<KpiSnapshot | null>(null);
   const lastGeneratedAtRef = useRef<string | null>(null);
@@ -42,8 +57,9 @@ export const useDashboardKpiModel = (
       return 0;
     }
 
-    return data.services.filter((service) => service.isActive).length;
-  }, [data]);
+    const serviceList = services ?? [];
+    return serviceList.filter((service) => service.isActive).length;
+  }, [data, services]);
 
   const incidentCounts = useMemo(
     () => (data ? countActiveIncidents(data.incidents) : null),
@@ -69,6 +85,52 @@ export const useDashboardKpiModel = (
     }, data.incidents[0]?.updatedAt ?? generatedAt);
   }, [data, generatedAt]);
 
+  const resolvedTodayCount = useMemo(() => {
+    if (!data) {
+      return 0;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return data.incidents.filter((incident) => {
+      if (!incident.resolvedAt) {
+        return false;
+      }
+
+      const resolvedDate = new Date(incident.resolvedAt);
+      resolvedDate.setHours(0, 0, 0, 0);
+      return resolvedDate.getTime() === today.getTime();
+    }).length;
+  }, [data]);
+
+  const mttrMinutes = useMemo(() => {
+    if (!data || data.incidents.length === 0) {
+      return null;
+    }
+
+    const resolvedIncidents = data.incidents.filter(
+      (incident) => incident.resolvedAt,
+    );
+
+    if (resolvedIncidents.length === 0) {
+      return null;
+    }
+
+    const totalMinutes = resolvedIncidents.reduce((sum, incident) => {
+      const createdMs = new Date(incident.createdAt).getTime();
+      if (!incident.resolvedAt) {
+        return sum;
+      }
+
+      const resolvedMs = new Date(incident.resolvedAt).getTime();
+      const durationMs = resolvedMs - createdMs;
+      return sum + durationMs;
+    }, 0);
+
+    return Math.round(totalMinutes / resolvedIncidents.length / 60000);
+  }, [data]);
+
   useLayoutEffect(() => {
     if (!data) {
       return;
@@ -89,7 +151,7 @@ export const useDashboardKpiModel = (
   }, [data, activeServicesCount, generatedAt, openCount]);
 
   if (!data) {
-    return EMPTY_MODEL;
+    return EMPTY_EXTENDED_MODEL;
   }
 
   return {
@@ -101,5 +163,7 @@ export const useDashboardKpiModel = (
     generatedAt,
     lastUpdatedAt,
     previousKpi,
+    resolvedTodayCount,
+    mttrMinutes,
   };
 };

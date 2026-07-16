@@ -1,6 +1,6 @@
 import { useDashboardActions } from "../../../contexts/useDashboardActions";
 import { useDashboardDataState } from "../../../contexts/useDashboardDataState";
-import { useDashboardKpiModel } from "../../../modules/dashboard/utils/useDashboardKpiModel";
+import { countActiveIncidents } from "../../../modules/dashboard/model/countActiveIncidents";
 import { Dashboard } from "../../../modules/dashboard/ui/Dashboard";
 import { EmptyState } from "./states/EmptyState";
 import { ErrorState } from "./states/ErrorState";
@@ -15,12 +15,13 @@ export const Content = () => {
     isInitialDataTimedOut,
     lastErrorReason,
   } = useDashboardDataState();
-  const kpiModel = useDashboardKpiModel(data);
 
   const isLoading =
     !data && connectionStatus !== "offline" && !isInitialDataTimedOut;
   const isServiceUnavailable = !data && connectionStatus === "offline";
   const isFirstPayloadTimeout = !data && isInitialDataTimedOut;
+
+  const incidentCounts = data ? countActiveIncidents(data.incidents) : null;
 
   if (isLoading) {
     return (
@@ -81,7 +82,9 @@ export const Content = () => {
       incidentsTrend={incidentsTrend}
       incidents={data.incidents}
       recentEvents={data.recentEvents}
-      {...kpiModel}
+      criticalCount={incidentCounts?.criticalCount ?? 0}
+      warningCount={incidentCounts?.warningCount ?? 0}
+      otherCount={incidentCounts?.otherCount ?? 0}
     />
   );
 };

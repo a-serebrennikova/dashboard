@@ -15,6 +15,7 @@ export type LastErrorReason =
 export type IncidentsTrendPoint = {
   second: string;
   timestampMs: number;
+  x: number;
   total: number;
   critical: number;
   warning: number;

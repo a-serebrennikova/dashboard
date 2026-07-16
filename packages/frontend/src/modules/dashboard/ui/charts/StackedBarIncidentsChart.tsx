@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
-import { formatDashboardTime } from "../../../../utils/formatDashboardTime";
 import { sortTooltipItems, type IncidentsChartPoint } from "./consts";
+import { SEVERITY_COLORS } from "../../model/severityColors";
 
 type StackedBarIncidentsChartProps = {
   data: IncidentsChartPoint[];
@@ -19,17 +19,16 @@ export const StackedBarIncidentsChart: FC<StackedBarIncidentsChartProps> = ({
     >
       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
       <XAxis
-        dataKey="timestampMs"
+        dataKey="x"
         type="number"
-        domain={["dataMin", "dataMax"]}
+        domain={[0, 29]}
         padding={{ left: 16, right: 16 }}
         minTickGap={36}
         interval="preserveStartEnd"
-        tickFormatter={(value) => formatDashboardTime(Number(value))}
         stroke="#94a3b8"
         tickLine={{ stroke: "#475569" }}
+        tick={false}
         axisLine={false}
-        tick={{ fill: "#94a3b8", fontSize: 11 }}
       />
       <YAxis
         allowDecimals={false}
@@ -54,9 +53,9 @@ export const StackedBarIncidentsChart: FC<StackedBarIncidentsChartProps> = ({
           fill: "rgba(148, 163, 184, 0.08)",
         }}
         itemSorter={sortTooltipItems}
-        labelFormatter={(label) => {
-          return `Time: ${formatDashboardTime(Number(label))}`;
-        }}
+        labelFormatter={(_, payload) =>
+          `Time: ${payload?.[0]?.payload.second ?? ""}`
+        }
         contentStyle={{
           background: "#0f172a",
           border: "1px solid #334155",
@@ -68,10 +67,20 @@ export const StackedBarIncidentsChart: FC<StackedBarIncidentsChartProps> = ({
         dataKey="critical"
         stackId="severity"
         name="Critical"
-        fill="#ef4444"
+        fill={SEVERITY_COLORS.critical}
       />
-      <Bar dataKey="warning" stackId="severity" name="Warning" fill="#fde047" />
-      <Bar dataKey="other" stackId="severity" name="Other" fill="#f59e0b" />
+      <Bar
+        dataKey="warning"
+        stackId="severity"
+        name="Warning"
+        fill={SEVERITY_COLORS.warning}
+      />
+      <Bar
+        dataKey="other"
+        stackId="severity"
+        name="Other"
+        fill={SEVERITY_COLORS.other}
+      />
     </BarChart>
   );
 };

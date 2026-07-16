@@ -1,10 +1,18 @@
-import { db } from "../db";
 import { randomUUID } from "node:crypto";
 import {
   calculateNextSnapshot,
   getActiveServiceIds,
   selectActiveIncident,
 } from "./dataSimulationUtils";
+import {
+  fetchActiveIncidents,
+  fetchActiveServices,
+  fetchDashboardSnapshot,
+  insertIncidentEvent,
+  pruneIncidentEventsHistory,
+  updateDashboardSnapshot,
+  updateIncident,
+} from "../persistence/dashboardRepository";
 
 const INCIDENT_STATUSES = ["open", "investigating", "resolved"] as const;
 type IncidentStatus = (typeof INCIDENT_STATUSES)[number];
@@ -28,12 +36,9 @@ const normalizeIncidentSeverity = (value: string): IncidentSeverity => {
 
 export async function simulateDataChanges(): Promise<void> {
   const [snapshot, services, incidents] = await Promise.all([
-    db.selectFrom("dashboard_snapshot").selectAll().executeTakeFirst(),
-    db.selectFrom("services").select(["id", "isActive"]).execute(),
-    db
-      .selectFrom("incidents")
-      .select(["id", "title", "severity", "status", "serviceId"])
-      .execute(),
+    fetchDashboardSnapshot(),
+    fetchActiveServices(),
+    fetchActiveIncidents(),
   ]);
 
   if (!snapshot) {
@@ -48,17 +53,14 @@ export async function simulateDataChanges(): Promise<void> {
     nextAverageResponseTime,
   } = calculateNextSnapshot(snapshot, services);
 
-  await db
-    .updateTable("dashboard_snapshot")
-    .set({
-      openCount: nextOpenCount,
-      criticalCount: nextCriticalCount,
-      warningCount: nextWarningCount,
-      avgResponseTime: nextAverageResponseTime,
-      lastUpdatedAt: new Date().toISOString(),
-    })
-    .where("id", "=", snapshot.id)
-    .execute();
+  await updateDashboardSnapshot({
+    id: snapshot.id,
+    openCount: nextOpenCount,
+    criticalCount: nextCriticalCount,
+    warningCount: nextWarningCount,
+    avgResponseTime: nextAverageResponseTime,
+    lastUpdatedAt: new Date().toISOString(),
+  });
 
   const incident = selectActiveIncident(incidents, activeServiceIds);
 
@@ -103,16 +105,13 @@ export async function simulateDataChanges(): Promise<void> {
     }
   }
 
-  await db
-    .updateTable("incidents")
-    .set({
-      status: nextStatus,
-      severity: nextSeverity,
-      updatedAt: nowIso,
-      resolvedAt: nextStatus === "resolved" ? nowIso : null,
-    })
-    .where("id", "=", incident.id)
-    .execute();
+  await updateIncident({
+    id: incident.id,
+    status: nextStatus,
+    severity: nextSeverity,
+    updatedAt: nowIso,
+    resolvedAt: nextStatus === "resolved" ? nowIso : null,
+  });
 
   const eventType = nextStatus === "resolved" ? "resolved" : "updated";
   const eventMessage =
@@ -120,15 +119,14 @@ export async function simulateDataChanges(): Promise<void> {
       ? `Incident resolved: ${incident.title}`
       : `State refreshed for incident: ${incident.title}`;
 
-  await db
-    .insertInto("incident_events")
-    .values({
-      id: randomUUID(),
-      incidentId: incident.id,
-      type: eventType,
-      message: eventMessage,
-      severity: nextSeverity,
-      createdAt: nowIso,
-    })
-    .execute();
+  await insertIncidentEvent({
+    id: randomUUID(),
+    incidentId: incident.id,
+    type: eventType,
+    message: eventMessage,
+    severity: nextSeverity,
+    createdAt: nowIso,
+  });
+
+  await pruneIncidentEventsHistory();
 }
