@@ -105,12 +105,20 @@ const replayTrendHistory = (
 ) => {
   let counts = initialCounts;
   const points: IncidentsTrendPoint[] = [];
+  let lastEmittedCounts: TrendCounts | null = null;
 
   for (const event of events) {
     const timestampMs = Date.parse(event.createdAt);
 
-    if (!Number.isNaN(timestampMs)) {
+    if (
+      !Number.isNaN(timestampMs) &&
+      (lastEmittedCounts === null ||
+        counts.total !== lastEmittedCounts.total ||
+        counts.critical !== lastEmittedCounts.critical ||
+        counts.warning !== lastEmittedCounts.warning)
+    ) {
       points.push(createTrendPoint(timestampMs, counts));
+      lastEmittedCounts = counts;
     }
 
     counts = applyTrendEvent(counts, event, incidentsById);
