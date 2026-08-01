@@ -1,18 +1,20 @@
 import { createContext } from "react";
 import type {
+  CreateIncidentInput,
   DashboardPayload,
   Service,
-} from "@package/dashboard-shared/contracts/dashboard";
+} from "@package/dashboard-shared/dashboard";
 import type {
   ConnectionStatus,
   IncidentsTrendPoint,
   LastErrorReason,
-} from "../types/dashboard";
+} from "../shared/types/dashboard";
 
 export type DashboardDataStateContextValue = {
   connectionStatus: ConnectionStatus;
   data: DashboardPayload | null;
   incidentsTrend: IncidentsTrendPoint[];
+  isLoadingData: boolean;
   isInitialDataTimedOut: boolean;
   lastErrorReason: LastErrorReason;
   services: Service[];
@@ -23,6 +25,8 @@ export type DashboardConnectionContextValue = {
 };
 
 export type DashboardActionsContextValue = {
+  createIncident: (input: CreateIncidentInput) => Promise<void>;
+  isCreateIncidentSubmitting: boolean;
   isRetryCooldown: boolean;
   retryNow: () => void;
 };

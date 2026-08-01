@@ -5,13 +5,10 @@ import {
   createRequestHandler,
   HEALTH_PATH,
   SNAPSHOT_PATH,
-} from "./server/httpRoutes";
-import { isOriginAllowed } from "./server/cors";
-import {
-  createDashboardMessage,
-  createSimulationLoop,
-} from "./server/simulationLoop";
-import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
+} from "./api/http/createRequestHandler";
+import { isOriginAllowed } from "./api/http/cors";
+import { createSimulationLoop } from "./api/ws/simulationLoop";
+import { createDashboardMessage } from "./api/ws/createDashboardMessage";
 
 const DEFAULT_PORT = 8080;
 const parsedPort = Number(process.env.PORT);
@@ -21,15 +18,28 @@ let wss: WebSocketServer;
 let httpServer: http.Server;
 
 try {
-  httpServer = http.createServer(createRequestHandler(PORT));
-
   wss = new WebSocketServer({ noServer: true });
+
+  const dashboardLoop = createSimulationLoop({
+    wss,
+    createMessage: createDashboardMessage,
+  });
+
+  httpServer = http.createServer(
+    createRequestHandler({
+      port: PORT,
+      onIncidentCreated: async () => {
+        await dashboardLoop.broadcastDashboardUpdate();
+      },
+    }),
+  );
 
   httpServer.on("upgrade", (request, socket, head) => {
     if (!isOriginAllowed(request.headers.origin)) {
       logger.warn("Rejected websocket upgrade from disallowed origin", {
         origin: request.headers.origin,
       });
+
       socket.write("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n");
       socket.destroy();
       return;
@@ -47,17 +57,7 @@ try {
     logger.info(`WebSocket endpoint: ws://localhost:${PORT}`);
   });
 
-  let currentData: DashboardPayload | null = null;
-  const { handleConnection } = createSimulationLoop({
-    wss,
-    createMessage: createDashboardMessage,
-    getCurrentData: () => currentData,
-    setCurrentData: (nextData) => {
-      currentData = nextData;
-    },
-  });
-
-  wss.on("connection", handleConnection);
+  wss.on("connection", dashboardLoop.handleConnection);
 } catch (error) {
   logger.error("Critical server startup error", { error });
 }

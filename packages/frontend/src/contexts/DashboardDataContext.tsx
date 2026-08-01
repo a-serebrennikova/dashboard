@@ -1,5 +1,5 @@
 import { type FC, type ReactNode, useMemo } from "react";
-import { useDashboardData } from "../hooks/useDashboardData";
+import { useDashboardData } from "./hooks/useDashboardData";
 import {
   DashboardActionsContext,
   DashboardConnectionContext,
@@ -13,9 +13,12 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
     connectionStatus,
     data,
     incidentsTrend,
+    isLoadingData,
     isInitialDataTimedOut,
     lastErrorReason,
     services,
+    createIncident,
+    isCreateIncidentSubmitting,
     isRetryCooldown,
     retryNow,
   } = useDashboardData();
@@ -25,6 +28,7 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
       connectionStatus,
       data,
       incidentsTrend,
+      isLoadingData,
       isInitialDataTimedOut,
       lastErrorReason,
       services,
@@ -33,6 +37,7 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
       connectionStatus,
       data,
       incidentsTrend,
+      isLoadingData,
       isInitialDataTimedOut,
       lastErrorReason,
       services,
@@ -48,10 +53,12 @@ export const DashboardDataProvider: FC<{ children: ReactNode }> = ({
 
   const actionsValue = useMemo(
     () => ({
+      createIncident,
+      isCreateIncidentSubmitting,
       isRetryCooldown,
       retryNow,
     }),
-    [isRetryCooldown, retryNow],
+    [createIncident, isCreateIncidentSubmitting, isRetryCooldown, retryNow],
   );
 
   return (

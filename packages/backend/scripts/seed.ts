@@ -30,7 +30,6 @@ async function seed() {
       await trx.deleteFrom("dashboard_snapshot").execute();
       await trx.deleteFrom("services").execute();
 
-      // Создание сервисов
       const services = [
         { id: uuidv4(), name: "API Gateway", team: "Platform" },
         { id: uuidv4(), name: "Payment Service", team: "Payments" },
@@ -41,9 +40,8 @@ async function seed() {
 
       await trx.insertInto("services").values(services).execute();
 
-      logger.info(`  ✓ Created ${services.length} services`);
+      logger.info(`✓ Created ${services.length} services`);
 
-      // Создание инцидентов
       const incidents = [
         {
           id: uuidv4(),
@@ -73,9 +71,8 @@ async function seed() {
 
       await trx.insertInto("incidents").values(incidents).execute();
 
-      logger.info(`  ✓ Created ${incidents.length} incidents`);
+      logger.info(`✓ Created ${incidents.length} incidents`);
 
-      // События инцидентов
       const events = [
         {
           id: uuidv4(),
@@ -116,9 +113,8 @@ async function seed() {
 
       await trx.insertInto("incident_events").values(events).execute();
 
-      logger.info(`  ✓ Created ${events.length} incident events`);
+      logger.info(`✓ Created ${events.length} incident events`);
 
-      // Снимок состояния
       const snapshot = {
         id: uuidv4(),
         openCount: 1,
@@ -129,10 +125,10 @@ async function seed() {
 
       await trx.insertInto("dashboard_snapshot").values(snapshot).execute();
 
-      logger.info("  ✓ Data reset and seeded in one transaction");
+      logger.info("✓ Data reset and seeded in one transaction");
     });
 
-    logger.info("  ✓ Created dashboard snapshot");
+    logger.info("✓ Created dashboard snapshot");
     logger.info("✅ Seeding complete!");
 
     process.exit(0);

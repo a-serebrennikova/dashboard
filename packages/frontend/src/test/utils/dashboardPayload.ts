@@ -1,4 +1,4 @@
-import type { DashboardPayload } from "@package/dashboard-shared/contracts/dashboard";
+import type { DashboardPayload } from "@package/dashboard-shared/dashboard";
 
 export const makeDashboardPayload = (
   overrides: Partial<DashboardPayload> = {},
@@ -73,7 +73,7 @@ export const makeDashboardPayload = (
         resolvedAt: null,
       },
     ],
-    recentEvents: [
+    events: [
       {
         id: "evt-1",
         incidentId: "inc-1",

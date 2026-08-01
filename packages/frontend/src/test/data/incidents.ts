@@ -1,4 +1,4 @@
-import type { Incident } from "@package/dashboard-shared/contracts/dashboard";
+import type { Incident } from "@package/dashboard-shared/dashboard";
 
 const SERVICE_ID = "svc-1";
 const SERVICE_NAME = "Payments API";
