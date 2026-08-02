@@ -1,8 +1,15 @@
-import { TREND_HISTORY_POINTS } from "../constants/trendHistory";
+import { TREND_HISTORY_POINTS } from "../consts";
 import { db } from "../db";
 
 export const fetchServices = () =>
   db.selectFrom("services").selectAll().orderBy("name", "asc").execute();
+
+export const fetchServiceById = (serviceId: string) =>
+  db
+    .selectFrom("services")
+    .selectAll()
+    .where("id", "=", serviceId)
+    .executeTakeFirst();
 
 export const fetchIncidents = () =>
   db
@@ -66,6 +73,18 @@ export const fetchActiveIncidents = () =>
     .selectFrom("incidents")
     .select(["id", "title", "severity", "status", "serviceId"])
     .execute();
+
+export const insertIncident = (input: {
+  id: string;
+  serviceId: string;
+  title: string;
+  description: string | null;
+  severity: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt: string | null;
+}) => db.insertInto("incidents").values(input).execute();
 
 export const updateDashboardSnapshot = (input: {
   id: string;

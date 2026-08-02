@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useDashboardSocketTransport } from "../../hooks/useDashboardSocketTransport";
+import { useDashboardSocketTransport } from "../../contexts/hooks/useDashboardSocketTransport";
 import { makeDashboardPayload } from "../utils/dashboardPayload";
 import { mockWebSocket } from "../utils/mockWebSocket";
 

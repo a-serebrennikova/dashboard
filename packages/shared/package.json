@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    "./contracts/dashboard": {
-      "types": "./dist/contracts/dashboard.d.ts",
-      "import": "./dist/contracts/dashboard.js"
+    "./dashboard": {
+      "types": "./dist/dashboard.d.ts",
+      "import": "./dist/dashboard.js"
     },
-    "./contracts/ws": {
-      "types": "./dist/contracts/ws.d.ts",
-      "import": "./dist/contracts/ws.js"
+    "./ws": {
+      "types": "./dist/ws.d.ts",
+      "import": "./dist/ws.js"
     }
   },
   "scripts": {

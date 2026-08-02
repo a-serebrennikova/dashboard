@@ -2,9 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-.incidents-chart .recharts-wrapper:focus,
-.incidents-chart .recharts-wrapper:focus-visible,
-.incidents-chart .recharts-surface:focus,
-.incidents-chart .recharts-surface:focus-visible {
+.dashboard-chart .recharts-wrapper:focus,
+.dashboard-chart .recharts-wrapper:focus-visible,
+.dashboard-chart .recharts-surface:focus,
+.dashboard-chart .recharts-surface:focus-visible,
+.dashboard-chart .recharts-layer:focus,
+.dashboard-chart .recharts-layer:focus-visible,
+.dashboard-chart .recharts-sector:focus,
+.dashboard-chart .recharts-sector:focus-visible,
+.dashboard-chart .recharts-rectangle:focus,
+.dashboard-chart .recharts-rectangle:focus-visible,
+.dashboard-chart [tabindex]:focus,
+.dashboard-chart [tabindex]:focus-visible {
   outline: none;
+}
+
+.dashboard-chart .recharts-cartesian-axis-tick-value,
+.dashboard-chart .recharts-legend-item-text,
+.dashboard-chart .recharts-tooltip-item,
+.dashboard-chart .recharts-tooltip-label,
+.dashboard-chart .recharts-label,
+.dashboard-chart .recharts-text {
+  font-size: 14px;
+}
+
+.dashboard-chart .recharts-pie-label-text,
+.dashboard-chart .recharts-sector {
+  font-size: 13px;
+}
+
+.incident-datetime-input {
+  color-scheme: dark;
+}
+
+.incident-datetime-input[type="date"]::-webkit-calendar-picker-indicator,
+.incident-datetime-input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 1;
+  filter: brightness(0) invert(1) saturate(0) brightness(2.2) contrast(1.2);
+}
+
+.incident-datetime-input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.incident-datetime-input[type="time"]::-webkit-calendar-picker-indicator:hover,
+.incident-datetime-input[type="date"]:focus-visible::-webkit-calendar-picker-indicator,
+.incident-datetime-input[type="time"]:focus-visible::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1) saturate(0) brightness(2.6) contrast(1.25);
 }

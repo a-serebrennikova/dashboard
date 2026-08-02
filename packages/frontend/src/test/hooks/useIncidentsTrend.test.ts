@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { vi, describe, expect, it } from "vitest";
-import { useIncidentsTrend } from "../../hooks/useIncidentsTrend.ts";
+import { useIncidentsTrend } from "../../contexts/hooks/useIncidentsTrend.ts";
 import { makeDashboardPayload } from "../utils/dashboardPayload";
 import {
   createIncidentAt,
