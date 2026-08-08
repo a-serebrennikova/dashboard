@@ -14,6 +14,7 @@ export type DashboardDataStateContextValue = {
   connectionStatus: ConnectionStatus;
   data: DashboardPayload | null;
   incidentsTrend: IncidentsTrendPoint[];
+  hasTrendHistoryLoaded: boolean;
   isLoadingData: boolean;
   isInitialDataTimedOut: boolean;
   lastErrorReason: LastErrorReason;

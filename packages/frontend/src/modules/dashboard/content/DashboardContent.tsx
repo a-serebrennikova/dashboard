@@ -11,6 +11,7 @@ export const DashboardContent = () => {
   const {
     data,
     incidentsTrend,
+    hasTrendHistoryLoaded,
     isLoadingData,
     connectionStatus,
     isInitialDataTimedOut,
@@ -24,11 +25,7 @@ export const DashboardContent = () => {
   const incidentCounts = data ? countActiveIncidents(data.incidents) : null;
 
   if (isLoadingData) {
-    return (
-      <LoadingState
-        title="Loading dashboard"
-      />
-    );
+    return <LoadingState title="Loading dashboard" />;
   }
 
   if (isServiceUnavailable) {
@@ -79,6 +76,7 @@ export const DashboardContent = () => {
   return (
     <Dashboard
       incidentsTrend={incidentsTrend}
+      hasTrendHistoryLoaded={hasTrendHistoryLoaded}
       incidents={data.incidents}
       events={data.events}
       criticalCount={incidentCounts?.criticalCount ?? 0}

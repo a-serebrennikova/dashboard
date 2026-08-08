@@ -17,6 +17,7 @@ const IncidentsAreaChart = lazy(() =>
 
 interface DashboardProps {
   incidentsTrend: IncidentsTrendPoint[];
+  hasTrendHistoryLoaded: boolean;
   incidents: DashboardPayload["incidents"];
   events: DashboardPayload["events"];
   criticalCount: number;
@@ -27,6 +28,7 @@ interface DashboardProps {
 
 export const Dashboard: FC<DashboardProps> = ({
   incidentsTrend,
+  hasTrendHistoryLoaded,
   incidents,
   events,
   criticalCount,
@@ -34,29 +36,33 @@ export const Dashboard: FC<DashboardProps> = ({
   otherCount,
   services,
 }) => {
+  const chartSkeleton = (
+    <section className="flex min-h-[420px] flex-col rounded-lg border border-slate-700 bg-slate-900 p-5">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="h-6 w-40 rounded bg-slate-800/70" />
+        <div className="inline-flex rounded-lg border border-slate-700 bg-slate-950/70 p-1">
+          <div className="h-8 w-20 rounded-md bg-slate-800/70" />
+          <div className="ml-2 h-8 w-20 rounded-md bg-slate-800/70" />
+          <div className="ml-2 h-8 w-20 rounded-md bg-slate-800/70" />
+        </div>
+      </div>
+      <div className="flex min-h-[320px] flex-1 items-center justify-center text-sm text-slate-500">
+        Loading incidents chart...
+      </div>
+    </section>
+  );
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Suspense
-            fallback={
-              <section className="flex min-h-[420px] flex-col rounded-lg border border-slate-700 bg-slate-900 p-5">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="h-6 w-40 rounded bg-slate-800/70" />
-                  <div className="inline-flex rounded-lg border border-slate-700 bg-slate-950/70 p-1">
-                    <div className="h-8 w-20 rounded-md bg-slate-800/70" />
-                    <div className="ml-2 h-8 w-20 rounded-md bg-slate-800/70" />
-                    <div className="ml-2 h-8 w-20 rounded-md bg-slate-800/70" />
-                  </div>
-                </div>
-                <div className="flex min-h-[320px] flex-1 items-center justify-center text-sm text-slate-500">
-                  Loading incidents chart...
-                </div>
-              </section>
-            }
-          >
-            <IncidentsAreaChart trend={incidentsTrend} />
-          </Suspense>
+          {!hasTrendHistoryLoaded ? (
+            chartSkeleton
+          ) : (
+            <Suspense fallback={chartSkeleton}>
+              <IncidentsAreaChart trend={incidentsTrend} />
+            </Suspense>
+          )}
         </div>
 
         <SeverityBreakdownCard
