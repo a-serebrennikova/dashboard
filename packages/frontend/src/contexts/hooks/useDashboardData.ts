@@ -26,6 +26,7 @@ type UseDashboardDataResult = {
   connectionStatus: ConnectionStatus;
   data: ReturnType<typeof useDashboardSocketTransport>["data"];
   incidentsTrend: IncidentsTrendPoint[];
+  hasTrendHistoryLoaded: boolean;
   isLoadingData: boolean;
   isInitialDataTimedOut: boolean;
   lastErrorReason: LastErrorReason;
@@ -94,6 +95,7 @@ export const useDashboardData = (
   );
 
   const incidentsTrend = useIncidentsTrend(data, data?.trendHistory);
+  const hasTrendHistoryLoaded = (data?.trendHistory?.length ?? 0) > 0;
   const isLoadingData =
     data === null && connectionStatus !== "offline" && !isInitialDataTimedOut;
 
@@ -101,6 +103,7 @@ export const useDashboardData = (
     connectionStatus,
     data,
     incidentsTrend,
+    hasTrendHistoryLoaded,
     isLoadingData,
     isInitialDataTimedOut,
     lastErrorReason,

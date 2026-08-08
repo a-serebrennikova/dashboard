@@ -52,8 +52,32 @@ export function createSimulationLoop({
     ws: WebSocket,
     currentData: DashboardPayload,
   ) => {
-    ws.send(createMessage("init", await buildInitPayload(currentData)));
-    logger.info("Initial data sent");
+    const initialPayload: DashboardInitPayload = {
+      ...currentData,
+      trendHistory: [],
+    };
+
+    ws.send(createMessage("init", initialPayload));
+    logger.info("Initial data sent (without trend history)");
+  };
+
+  const sendTrendHistoryPayload = async (
+    ws: WebSocket,
+    currentData: DashboardPayload,
+  ) => {
+    const initPayload = await buildInitPayload(currentData);
+
+    if (ws.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
+    ws.send(
+      createMessage("update", {
+        generatedAt: initPayload.generatedAt,
+        trendHistory: initPayload.trendHistory,
+      }),
+    );
+    logger.info("Trend history sent");
   };
 
   const stop = () => {
@@ -124,6 +148,13 @@ export function createSimulationLoop({
       }
 
       await sendInitialPayload(ws, currentData);
+      sendTrendHistoryPayload(ws, currentData).catch((error) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unknown trend history send error";
+        logger.error(`Failed to send trend history: ${message}`);
+      });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unknown initial send error";
