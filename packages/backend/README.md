@@ -2,7 +2,7 @@
 
 Node.js + TypeScript backend for realtime dashboard data and WebSocket streaming.
 
-## Important Commands
+## Scripts
 
 Run from repository root:
 
@@ -15,22 +15,13 @@ npm -w packages/backend run start
 
 ## Env Variables
 
-- `DATABASE_URL` - database connection string. Server throws on startup if missing.
+- `DATABASE_URL` - database connection string.
 
 Optional:
 
 - `PORT` - HTTP/WebSocket server port. Default: `8080`.
 - `LOG_LEVEL` - one of `error`, `warn`, `info`, `debug`. Default: `error`.
 - `CORS_ALLOWED_ORIGINS` - comma-separated allowlist for HTTP API origins.
-  Example: `https://dashboard-demo.vercel.app,http://localhost:5173`.
-  The same allowlist is also used for WebSocket `Origin` validation.
-
-## Endpoints
-
-- Health: `http://localhost:<PORT>/health`
-- Snapshot: `http://localhost:<PORT>/api/snapshot`
-- Services: `http://localhost:<PORT>/api/services`
-- WebSocket: `ws://localhost:<PORT>`
 
 ## Notes
 

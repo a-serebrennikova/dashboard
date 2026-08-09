@@ -1,8 +1,8 @@
 # Frontend
 
-React + TypeScript + Vite frontend for the realtime dashboard.
+React + TypeScript + Vite for realtime dashboard.
 
-## Important Commands
+## Scripts
 
 Run from repository root:
 
@@ -15,11 +15,4 @@ npm -w packages/frontend run lint
 
 ## Env Variables
 
-- `VITE_WS_URL` is the base WebSocket URL (used in production and as a fallback in development).
-
-## Structure
-
-- `src/pages` - route-level UI
-- `src/modules` - feature modules (dashboard, connection)
-- `src/contexts` - dashboard state providers
-- `src/hooks` - socket and data logic
+- `VITE_WS_URL` is the base WebSocket URL

@@ -1,7 +1,4 @@
-# Dashboard
-
-A simple project built with React and Node.js using WebSockets.
-Demo: https://dashboard-teal-gamma-49.vercel.app
+# Real-Time System Incident Dashboard
 
 ## Overview
 
