@@ -20,7 +20,7 @@ export const RecentIncidentsList: FC<IncidentsTableProps> = ({ incidents }) => {
         </div>
       </div>
 
-      <div className="h-[460px] overflow-y-auto overscroll-y-contain pr-1">
+      <div className="h-[520px] overflow-y-auto overscroll-y-contain pr-1">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {incidents.map((incident) => (
             <Card

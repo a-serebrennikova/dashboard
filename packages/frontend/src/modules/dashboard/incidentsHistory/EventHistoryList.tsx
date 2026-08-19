@@ -39,29 +39,33 @@ export const EventHistoryList: FC<EventListProps> = ({ events, services }) => {
   };
 
   return (
-    <section className="bg-slate-900 p-5 rounded-lg border border-slate-700">
+    <section className="rounded-lg border border-slate-700 bg-slate-900 p-5 text-base">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-slate-200 text-lg font-semibold">
+        <h2 className="text-lg font-semibold text-slate-200">
           Incident history
         </h2>
       </div>
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <EventTypeFilters
-          filters={EVENT_TYPE_FILTERS}
-          activeFilter={filter}
-          onFilterChange={changeFilter}
-        />
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="md:flex-1">
+          <EventTypeFilters
+            filters={EVENT_TYPE_FILTERS}
+            activeFilter={filter}
+            onFilterChange={changeFilter}
+          />
+        </div>
 
-        <ServiceFilterSelect
-          value={serviceFilter}
-          onValueChange={setServiceFilter}
-          options={serviceOptions}
-        />
+        <div className="w-full md:w-auto md:flex-none">
+          <ServiceFilterSelect
+            value={serviceFilter}
+            onValueChange={setServiceFilter}
+            options={serviceOptions}
+          />
+        </div>
       </div>
 
-      <div className="h-[570px] overflow-y-auto overscroll-y-contain pr-1">
+      <div className="h-[520px] overflow-y-auto overscroll-y-contain pr-1">
         {filteredEvents.length === 0 ? (
-          <div className="flex h-full items-center justify-center rounded-md border border-slate-700 bg-slate-950/40 px-3 py-4 text-sm text-slate-500 text-center">
+          <div className="flex h-full items-center justify-center rounded-md border border-slate-700 bg-slate-950/40 px-3 py-4 text-center text-sm text-slate-500">
             No events for selected filter.
           </div>
         ) : (

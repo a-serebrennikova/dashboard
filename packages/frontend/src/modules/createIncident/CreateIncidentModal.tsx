@@ -345,7 +345,7 @@ export const CreateIncidentModal = ({
                 <button
                   type="button"
                   disabled={isSubmitting}
-                  className="rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2 text-sm text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="secondary-button"
                 >
                   Cancel
                 </button>

@@ -9,7 +9,7 @@ export const CreateIncidentButton = ({
     <button
       type="button"
       onClick={onCreateIncident}
-      className="inline-flex h-8 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 text-xs font-medium text-emerald-300 transition-colors duration-300 hover:bg-emerald-500/15 hover:text-emerald-200"
+      className="custom-button"
     >
       <svg
         viewBox="0 0 24 24"

@@ -30,7 +30,7 @@ export const SeverityBreakdownCard = ({
   return (
     <div
       ref={containerRef}
-      className="flex h-full min-h-[320px] flex-col rounded-lg border border-slate-700 bg-slate-900 p-5"
+      className="panel-surface flex h-full min-h-[320px] flex-col"
     >
       <h3 className="text-base font-medium text-slate-200 mb-4">
         Incidents by severity

@@ -6,7 +6,7 @@ type RecentActivityCardProps = {
 
 export const RecentActivityCard = ({ events }: RecentActivityCardProps) => {
   return (
-    <div className="flex min-h-[320px] flex-col rounded-lg border border-slate-700 bg-slate-900 p-5">
+    <div className="panel-surface flex min-h-[320px] flex-col">
       <h3 className="text-base font-medium text-slate-200 mb-4">
         Recent activity
       </h3>

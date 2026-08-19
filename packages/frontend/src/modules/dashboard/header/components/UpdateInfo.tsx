@@ -49,7 +49,7 @@ export const UpdateInfo = ({
 
       <div className="min-w-0">
         <div className="text-xs font-medium text-slate-400">Last updated</div>
-        <div className="whitespace-nowrap text-sm font-semibold text-slate-100 tabular-nums lg:text-[15px]">
+        <div className="text-sm font-semibold text-slate-100 tabular-nums lg:text-[15px]">
           {lastUpdatedLabel}
         </div>
       </div>

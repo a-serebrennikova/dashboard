@@ -19,7 +19,7 @@ export function StatusBadge({ connectionStatus }: StatusBadgeProps) {
   const statusText = status.label.replace(/^\S+\s+/, "");
   const isReconnecting = resolvedStatus === "reconnecting";
 
-  const srStatusText = isReconnecting ? "Reconnecting in progress" : statusText;
+  const currentStatusText = isReconnecting ? "Reconnecting in progress" : statusText;
 
   return (
     <div className="flex items-center">
@@ -28,7 +28,7 @@ export function StatusBadge({ connectionStatus }: StatusBadgeProps) {
           <Tooltip.Trigger asChild>
             <button
               type="button"
-              aria-label={`Connection status: ${srStatusText}`}
+              aria-label={`Connection status: ${currentStatusText}`}
               className={`inline-flex h-8 items-center gap-2 rounded-full border px-4 text-xs font-medium transition-colors duration-300 ${status.classes}`}
             >
               <span
@@ -40,7 +40,7 @@ export function StatusBadge({ connectionStatus }: StatusBadgeProps) {
               <span className="inline text-xs">
                 <span>{statusText}</span>
               </span>
-              <span className="sr-only">{srStatusText}</span>
+              <span className="sr-only">{currentStatusText}</span>
             </button>
           </Tooltip.Trigger>
           <Tooltip.Portal>

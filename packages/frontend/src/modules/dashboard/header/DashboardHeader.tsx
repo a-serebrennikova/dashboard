@@ -18,27 +18,25 @@ export const DashboardHeader = () => {
   } = useDashboardActions();
   const { data, services } = useDashboardDataState();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const lastUpdatedLabel = data?.generatedAt
-    ? formatDateTime(data.generatedAt)
-    : "--.--.----, --:--:--";
+  const lastUpdatedLabel = formatDateTime(data?.generatedAt);
 
   return (
     <>
       <section className="mb-6 overflow-hidden rounded-[2rem] border border-slate-800 bg-slate-900/95 p-5 shadow-xl">
         <div className="flex flex-wrap items-start justify-between gap-6">
-          <div className="min-w-[26rem] flex-1">
-            <TitleBlock connectionStatus={connectionStatus} />
-          </div>
+          <TitleBlock connectionStatus={connectionStatus} />
 
-          <div className="flex w-full flex-row items-center justify-start gap-3 self-start lg:ml-auto lg:w-auto lg:flex-none lg:flex-col lg:items-end lg:gap-2">
+          <div className="flex flex-col w-full justify-start gap-3 self-start lg:ml-auto lg:w-auto lg:flex-none lg:flex-col lg:items-end lg:gap-2">
             <UpdateInfo
               lastUpdatedLabel={lastUpdatedLabel}
               isRetryCooldown={isRetryCooldown}
               onRetry={retryNow}
             />
-            <CreateIncidentButton
-              onCreateIncident={() => setIsCreateModalOpen(true)}
-            />
+            <div>
+              <CreateIncidentButton
+                onCreateIncident={() => setIsCreateModalOpen(true)}
+              />
+            </div>
           </div>
         </div>
       </section>

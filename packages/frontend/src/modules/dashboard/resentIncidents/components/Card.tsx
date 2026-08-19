@@ -24,7 +24,7 @@ export const Card = memo(function Card({
   status,
 }: CardProps) {
   return (
-    <article className="flex h-full flex-col rounded-lg border border-slate-700 bg-slate-950/40 p-3 transition-colors hover:border-slate-600">
+    <article className="panel-surface-subtle flex h-full flex-col p-3 transition-colors hover:border-slate-600">
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-sm font-medium text-slate-100">
@@ -45,16 +45,10 @@ export const Card = memo(function Card({
       </div>
 
       <div className="mb-2 flex flex-wrap gap-2 text-xs">
-        <span
-          className={`text-xs px-2 py-1 rounded-full border ${SEVERITY_CLASSES[severity]}`}
-        >
+        <span className={`pill-badge ${SEVERITY_CLASSES[severity]}`}>
           {severity}
         </span>
-        <span
-          className={`text-xs px-2 py-1 rounded-full border ${STATUS_CLASSES[status]}`}
-        >
-          {status}
-        </span>
+        <span className={`pill-badge ${STATUS_CLASSES[status]}`}>{status}</span>
       </div>
 
       <div className="mt-auto grid grid-cols-2 gap-2 text-xs text-slate-300">
