@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  font-size: 1.25rem;
+}
+
+html {
+  font-size: 1.25rem;
+}
+
+body {
+  font-size: 1rem;
+}
+
+@layer components {
+  .panel-surface {
+    @apply rounded-lg border border-slate-700 bg-slate-900 p-5;
+  }
+
+  .panel-surface-subtle {
+    @apply rounded-lg border border-slate-700 bg-slate-950/40;
+  }
+
+  .secondary-button {
+    @apply rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2 text-sm text-slate-200 transition hover:border-slate-500 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .pill-badge {
+    @apply whitespace-nowrap rounded-full border px-2 py-1 text-xs;
+  }
+}
+
 .dashboard-chart .recharts-wrapper:focus,
 .dashboard-chart .recharts-wrapper:focus-visible,
 .dashboard-chart .recharts-surface:focus,
@@ -47,4 +77,8 @@
 .incident-datetime-input[type="date"]:focus-visible::-webkit-calendar-picker-indicator,
 .incident-datetime-input[type="time"]:focus-visible::-webkit-calendar-picker-indicator {
   filter: brightness(0) invert(1) saturate(0) brightness(2.6) contrast(1.25);
+}
+
+.custom-button {
+  @apply inline-flex h-8 items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 text-xs font-medium text-emerald-300 transition-colors duration-300 hover:bg-emerald-500/15 hover:text-emerald-200;
 }

@@ -7,13 +7,13 @@ type TitleBlockProps = {
 
 export const TitleBlock = ({ connectionStatus }: TitleBlockProps) => {
   return (
-    <div className="max-w-2xl">
-      <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+    <div className="flex-1">
+      <p className="text-sm uppercase text-slate-500">
         Incident monitoring
       </p>
 
       <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-        <h1 className="text-2xl font-semibold text-slate-50 sm:whitespace-nowrap">
+        <h1 className="text-2xl font-semibold text-slate-50">
           Live Dashboard
         </h1>
         <StatusBadge connectionStatus={connectionStatus} />

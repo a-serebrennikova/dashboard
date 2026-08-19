@@ -26,19 +26,19 @@ export const Card = memo(function Card({
   severity,
 }: CardProps) {
   return (
-    <div className="rounded-md border border-slate-700 bg-slate-950/40 px-3 py-2">
+    <div className="rounded-md border border-slate-700 bg-slate-950/40 px-3 py-2 text-sm">
       <div className="flex items-start justify-between gap-3">
-        <div className="text-slate-100 font-medium">{message}</div>
+        <div className="font-medium text-slate-100">{message}</div>
         <span
-          className={`text-[11px] px-2 py-1 rounded-full border whitespace-nowrap ${severityClasses[severity ?? "info"]}`}
+          className={`pill-badge text-[0.6875rem] ${severityClasses[severity ?? "info"]}`}
         >
           {type}
         </span>
       </div>
-      <div className="mt-1 text-slate-500 text-xs">
+      <div className="mt-1 text-xs text-slate-500">
         {incidentTitle} · {serviceName}
       </div>
-      <div className="mt-1 text-slate-500 text-xs">
+      <div className="mt-1 text-xs text-slate-500">
         {transformToTimeFormat(createdAt)}
       </div>
     </div>

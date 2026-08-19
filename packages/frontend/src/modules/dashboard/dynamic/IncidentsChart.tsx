@@ -36,29 +36,31 @@ export const IncidentsChart: FC<IncidentsAreaChartProps> = ({ trend }) => {
   );
 
   return (
-    <section className="flex min-h-[420px] flex-col rounded-lg border border-slate-700 bg-slate-900 p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
+    <section className="panel-surface flex min-h-[420px] flex-col">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-slate-200 text-lg font-semibold">
             Open incidents trend
           </h2>
         </div>
 
-        <div className="inline-flex rounded-lg border border-slate-700 bg-slate-950/70 p-1">
-          {CHART_MODES.map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setChartMode(mode)}
-              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
-                chartMode === mode
-                  ? "bg-slate-700 text-slate-100"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              {CHART_MODE_LABELS[mode]}
-            </button>
-          ))}
+        <div className="w-full sm:w-auto">
+          <div className="inline-flex w-full flex-wrap rounded-lg border border-slate-700 bg-slate-950/70 p-1">
+            {CHART_MODES.map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setChartMode(mode)}
+                className={`flex-1 rounded-md px-3 py-1.5 text-xs transition-colors sm:flex-none ${
+                  chartMode === mode
+                    ? "bg-slate-700 text-slate-100"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {CHART_MODE_LABELS[mode]}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
