@@ -86,7 +86,7 @@ export const CreateIncidentModal = ({
     >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-slate-950/40 focus:outline-none">
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-slate-950/40 focus:outline-none">
           <div className="flex items-center justify-between border-b border-slate-800 px-5 py-4">
             <div>
               <Dialog.Title className="text-lg font-semibold text-slate-50">
@@ -100,7 +100,7 @@ export const CreateIncidentModal = ({
               <button
                 type="button"
                 disabled={isSubmitting}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/60 text-slate-300 transition hover:border-slate-500 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-950/60 text-slate-300 transition hover:border-slate-500 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
                 aria-label="Close create incident form"
               >
                 ×
@@ -108,7 +108,10 @@ export const CreateIncidentModal = ({
             </Dialog.Close>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 overflow-y-auto px-5 py-5"
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Service */}
               <div className="space-y-1 text-sm text-slate-300">
