@@ -4,14 +4,14 @@ import type {
   Incident,
   IncidentsTrendPoint,
 } from "@package/dashboard-shared/dashboard";
-import { fetchTrendEvents } from "../persistence/dashboardRepository";
-import { TREND_TIME_FORMATTER, TREND_HISTORY_POINTS } from "../consts";
+import { fetchTrendEvents } from "./repository";
+import { TREND_TIME_FORMATTER, TREND_HISTORY_POINTS } from "./constants";
 
 type TrendEventRow = {
   incidentId: string;
   type: string;
   severity: string | null;
-  createdAt: string;
+  createdAt: Date | string;
 };
 
 type TrendCounts = {
@@ -101,7 +101,10 @@ const replayTrendHistory = (
   const points: IncidentsTrendPoint[] = [];
 
   for (const event of events) {
-    const timestampMs = Date.parse(event.createdAt);
+    const timestampMs =
+      event.createdAt instanceof Date
+        ? event.createdAt.getTime()
+        : Date.parse(event.createdAt);
 
     if (!Number.isNaN(timestampMs)) {
       points.push(createTrendPoint(timestampMs, counts));

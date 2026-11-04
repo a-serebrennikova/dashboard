@@ -8,9 +8,9 @@ import type {
   MessageType,
 } from "@package/dashboard-shared/ws";
 import { logger } from "../../logger";
-import { getDashboardPayload } from "../../core/service";
-import { simulateDataChanges } from "../../simulations/dataSimulator";
-import { buildInitPayload } from "../../core/trendHistory";
+import { getDashboardPayload } from "../../features/dashboard/service";
+import { buildInitPayload } from "../../features/dashboard/trendHistory";
+import { simulateDataChanges } from "../../features/simulation/dataSimulator";
 import { buildUpdatePayload, getNextDelayMs } from "./utils";
 
 type CreateMessage = (

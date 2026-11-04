@@ -1,18 +1,16 @@
-import Database from "better-sqlite3";
-import { Kysely, PostgresDialect, SqliteDialect } from "kysely";
+import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import type { Tables } from "./schema";
 
-export function createDatabaseClient(databaseUrl: string) {
-  return databaseUrl.startsWith("postgresql")
-    ? new Kysely<Tables>({
-        dialect: new PostgresDialect({
-          pool: new Pool({ connectionString: databaseUrl }),
-        }),
-      })
-    : new Kysely<Tables>({
-        dialect: new SqliteDialect({
-          database: new Database(databaseUrl.replace("file:", "")),
-        }),
-      });
+export function createPostgresClient(databaseUrl: string): Kysely<Tables> {
+  const { protocol } = new URL(databaseUrl);
+  if (protocol !== "postgres:" && protocol !== "postgresql:") {
+    throw new Error("DATABASE_URL must use the postgres:// or postgresql:// scheme");
+  }
+
+  return new Kysely<Tables>({
+    dialect: new PostgresDialect({
+      pool: new Pool({ connectionString: databaseUrl }),
+    }),
+  });
 }

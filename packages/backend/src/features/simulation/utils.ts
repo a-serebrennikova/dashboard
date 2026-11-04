@@ -7,7 +7,7 @@ import {
   CRITICAL_INCIDENT_LATENCY_IMPACT_MS,
   RESPONSE_TIME_JITTER_MS,
   RESPONSE_TIME_EMA_ALPHA,
-} from "./consts";
+} from "./constants";
 
 // Keep a number within [min, max]
 export const clamp = (value: number, min: number, max: number) =>

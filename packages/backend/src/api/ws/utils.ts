@@ -4,11 +4,11 @@ import type {
   DashboardPayload,
 } from "@package/dashboard-shared/dashboard";
 import { DashboardUpdatePayload } from "@package/dashboard-shared/ws";
-import { TREND_TIME_FORMATTER } from "../../consts";
+import { TREND_TIME_FORMATTER } from "../../features/dashboard/constants";
 import {
   MAX_SIMULATION_DELAY_MS,
   MIN_SIMULATION_DELAY_MS,
-} from "../../simulations/consts";
+} from "../../features/simulation/constants";
 
 const countActiveIncidentGroups = (incidents: Incident[]) => {
   let total = 0;
