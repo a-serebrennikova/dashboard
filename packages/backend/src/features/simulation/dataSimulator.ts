@@ -1,19 +1,22 @@
 import { randomUUID } from "node:crypto";
 import {
   fetchActiveIncidents,
+  pruneIncidentEventsHistory,
+} from "../incidents/repository";
+import {
   fetchActiveServices,
   fetchDashboardSnapshot,
-  insertIncidentEvent,
-  pruneIncidentEventsHistory,
-  updateDashboardSnapshot,
-  updateIncident,
-} from "../persistence/dashboardRepository";
+} from "../dashboard/repository";
+import { persistSimulationChanges } from "./repository";
 import type {
   IncidentSeverity,
   IncidentStatus,
 } from "@package/dashboard-shared/dashboard";
 import { INCIDENT_SEVERITIES } from "@package/dashboard-shared/dashboard";
-import { isIncidentSeverity, isIncidentStatus } from "../utils";
+import {
+  isIncidentSeverity,
+  isIncidentStatus,
+} from "../incidents/validation";
 import {
   getActiveServiceIds,
   calculateNextSnapshot,
@@ -47,18 +50,19 @@ export async function simulateDataChanges(): Promise<void> {
     nextAverageResponseTime,
   } = calculateNextSnapshot(snapshot, services);
 
-  await updateDashboardSnapshot({
+  const snapshotUpdate = {
     id: snapshot.id,
     openCount: nextOpenCount,
     criticalCount: nextCriticalCount,
     warningCount: nextWarningCount,
     avgResponseTime: nextAverageResponseTime,
     lastUpdatedAt: new Date().toISOString(),
-  });
+  };
 
   const incident = selectActiveIncident(incidents, activeServiceIds);
 
   if (!incident) {
+    await persistSimulationChanges({ snapshot: snapshotUpdate });
     return;
   }
 
@@ -100,13 +104,13 @@ export async function simulateDataChanges(): Promise<void> {
     }
   }
 
-  await updateIncident({
+  const incidentUpdate = {
     id: incident.id,
     status: nextStatus,
     severity: nextSeverity,
     updatedAt: nowIso,
     resolvedAt: nextStatus === "resolved" ? nowIso : null,
-  });
+  };
 
   const eventType = nextStatus === "resolved" ? "resolved" : "updated";
   const eventMessage =
@@ -114,14 +118,19 @@ export async function simulateDataChanges(): Promise<void> {
       ? `Incident resolved: ${incident.title}`
       : `State refreshed for incident: ${incident.title}`;
 
-  await insertIncidentEvent({
+  const event = {
     id: randomUUID(),
     incidentId: incident.id,
     type: eventType,
     message: eventMessage,
     severity: nextSeverity,
     createdAt: nowIso,
-  });
+  };
 
+  await persistSimulationChanges({
+    snapshot: snapshotUpdate,
+    incident: incidentUpdate,
+    event,
+  });
   await pruneIncidentEventsHistory();
 }

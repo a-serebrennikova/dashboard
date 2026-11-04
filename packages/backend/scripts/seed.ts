@@ -16,7 +16,7 @@ const ensureSchemaReady = async () => {
 };
 
 async function seed() {
-  logger.info("🌱 Seeding database...");
+  logger.info("Seeding database...");
 
   try {
     logger.info("  → Checking schema (migrations must be applied)...");

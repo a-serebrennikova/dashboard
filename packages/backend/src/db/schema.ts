@@ -1,4 +1,11 @@
-import type { Generated } from "kysely";
+import type { ColumnType, Generated } from "kysely";
+
+type GeneratedTimestamp = ColumnType<
+  Date,
+  Date | string | undefined,
+  Date | string
+>;
+type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Tables {
   services: ServiceRow;
@@ -8,40 +15,40 @@ export interface Tables {
 }
 
 interface ServiceRow {
-  id: Generated<string>;
+  id: string;
   name: string;
   team: string;
   isActive: Generated<boolean>;
-  createdAt: Generated<string>;
-  updatedAt: Generated<string>;
+  createdAt: GeneratedTimestamp;
+  updatedAt: GeneratedTimestamp;
 }
 
 interface IncidentRow {
-  id: Generated<string>;
+  id: string;
   serviceId: string;
   title: string;
   description: string | null;
   severity: string;
   status: string;
-  createdAt: Generated<string>;
-  updatedAt: Generated<string>;
-  resolvedAt: string | null;
+  createdAt: GeneratedTimestamp;
+  updatedAt: GeneratedTimestamp;
+  resolvedAt: Timestamp | null;
 }
 
 interface IncidentEventRow {
-  id: Generated<string>;
+  id: string;
   incidentId: string;
   type: string;
   message: string;
   severity: string | null;
-  createdAt: Generated<string>;
+  createdAt: GeneratedTimestamp;
 }
 
 interface DashboardSnapshotRow {
-  id: Generated<string>;
+  id: string;
   openCount: number;
   criticalCount: number;
   warningCount: number;
   avgResponseTime: number;
-  lastUpdatedAt: Generated<string>;
+  lastUpdatedAt: GeneratedTimestamp;
 }

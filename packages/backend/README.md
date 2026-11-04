@@ -1,6 +1,6 @@
 # Backend
 
-Node.js + TypeScript backend for realtime dashboard data and WebSocket streaming.
+Node.js + TypeScript backend for realtime dashboard data and WebSocket streaming. Express handles HTTP routes; the HTTP server also serves the WebSocket endpoint.
 
 ## Scripts
 
@@ -15,7 +15,7 @@ npm -w packages/backend run start
 
 ## Env Variables
 
-- `DATABASE_URL` - database connection string.
+- `DATABASE_URL` - PostgreSQL connection string (`postgres://` or `postgresql://`).
 
 Optional:
 
@@ -26,4 +26,5 @@ Optional:
 ## Notes
 
 - `dev` and `seed` scripts load env from `packages/backend/.env` via `dotenv-cli`.
+- Apply the SQL migrations in `packages/backend/migrations` to your PostgreSQL database before running the backend.
 - `prebuild` compiles `packages/shared` before backend build.
